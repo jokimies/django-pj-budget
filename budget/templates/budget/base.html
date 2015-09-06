@@ -1,0 +1,53 @@
+{% extends 'base.html' %}    
+
+{% block extra_head %}
+{% endblock extra_head %}
+
+{% block content %}
+
+
+<!--
+<p>Date: <input type="text" id="datepicker"></p>
+-->
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-2">
+      <div class="well sidebar-nav">
+	<ul class="nav nav-list">
+	  <li class="active"><a href="{% url 'budget_dashboard' %}">Dashboard</a></li> <!-- " to get emacs coloring correct -->
+	  <li><a href="{% url 'budget_transaction_list' %}">Transactions</a></li> <!-- " to get emacs coloring correct -->
+	  <li><a href="{% url 'budget_summary_list' %}">Summaries</a></li> <!-- " to get emacs coloring correct -->
+          <li><a href="{% url 'budget_setup' %}">Setup</a></li> <!-- " to get emacs coloring correct -->
+	</ul>
+      </div>
+      {% block portfolio_nav %}
+      {% endblock portfolio_nav %}
+    </div>
+    <div class="col-md-10">
+      {% block budget_content %}
+      {% endblock budget_content %}
+    </div> <!-- col-md-4 -->
+  </div> <!-- row -->
+</div> <!-- container -->
+
+{% endblock content %}
+<div id="page_wrapper">
+            <div id="page_header">
+            </div>
+            
+            <div id="page_navigation">
+                <ul>
+                    <li class="active"><a href="{% url 'budget_dashboard' %}">Dashboard</a></li>
+                    <li><a href="{% url 'budget_transaction_list' %}">Transactions</a></li>
+                    <li><a href="{% url 'budget_summary_list' %}">Summaries</a></li>
+                    <li><a href="{% url 'budget_setup' %}">Setup</a></li>
+                </ul>
+            </div>
+            
+            <div id="page_footer">
+                
+            </div>
+        </div>
+
+{% block extra_scripts %}	  
+{% endblock extra_scripts %}

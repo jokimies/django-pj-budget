@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<!-- Dummy base just to be able to run tests with 'real'  existing templates -->
+
+<head>
+    <meta charset="utf-8">
+	
+    <title>{% block title %}{% endblock %} | www.my.com</title>
+    <meta name="description" content="{% block meta_description %}{% endblock %}">
+
+  {% block base_href %}
+
+  {% endblock base_href %}
+
+  {% block extra_head %}{% endblock %}
+
+</head>
+<body>
+   
+  {% block content %}
+
+  {% endblock %}
+
+</body>
+</html>

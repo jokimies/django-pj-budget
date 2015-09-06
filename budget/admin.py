@@ -1,6 +1,6 @@
 from django.contrib import admin
-from budget.models import Budget, BudgetEstimate
 
+from budget.models import Budget, BudgetEstimate
 
 class BudgetAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_date'

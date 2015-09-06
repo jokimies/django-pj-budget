@@ -1,0 +1,48 @@
+*{margin:0;padding:0}
+body{color:#333;font-family:Helvetica,Verdana,Arial;font-size:14px;line-height:18px;}
+h1,h2,h3,h4,h5,h6{margin-bottom:10px}
+p{margin-bottom:10px}
+a,a:visited,a:hover{color:#00f}
+img{border-width:0}
+ul li,ol li,dl dd{margin-left:20px}
+table{border-collapse:collapse;margin-bottom:10px}
+table tr th,table tr td{text-align:left;vertical-align:top;padding:4px}
+label{margin-right:10px}
+input,select,textarea{margin-bottom:5px}
+#page_wrapper{background-color:#fff;margin-bottom:10px;margin-left:auto;margin-right:auto;margin-top:10px;text-align:left;width:760px}
+#page_header{background-color:#bdf;padding:10px;text-align:center}
+#page_navigation{background-color:#bdf;height:26px}
+#page_navigation ul{list-style:none}
+#page_navigation ul li{background-color:#e0e0e0;float:left;margin-left:0;margin-right:5px}
+#page_navigation ul li a,#page_navigation ul li a:visited,#page_navigation ul li a:hover{color:#333;display:block;font-weight:bold;padding:4px;text-decoration:none}
+#page_navigation ul li a.active{background-color:#fff}
+#page_content{clear:both;padding:10px}
+#content{margin:10px}
+#page_footer{clear:both;text-align:center}
+#latest_expenses{float:left;width:45%;margin-right:10px;margin-top:10px}
+#latest_incomes{float:left;width:45%;margin-top:10px}
+#budget_progress_bar{clear:both;padding-top:10px;text-align:center}
+#progress_wrapper{border:solid 1px #333;height:20px;overflow:hidden;text-align:left}
+#progress_bar{height:100%}
+#progress_bar.green{background-color:#8f8}
+#progress_bar.yellow{background-color:#ff8}
+#progress_bar.red{background-color:#f88}
+.report_table{width:100%}
+.report_table thead{border-bottom:solid 1px #333}
+.report_table .numeric{text-align:right;width:25%}
+.report_table .even{background-color:#eee;border-bottom:solid 1px #e0e0e0;border-top:solid 1px #e0e0e0}
+.report_table td span.green{color:inherit}
+.report_table td span.yellow{color:#aa0}
+.report_table td span.red{color:#c33}
+.report_table tfoot{border-top:solid 1px #333}
+.form_table{margin-top:10px}
+.deletion{margin-top:15px}
+.previous_next_wrapper{height:20px;padding-top:10px}
+.previous,.next{float:left;margin-right:5px}
+.previous a,.previous span,.next a,.next span{background-color:#eee;border:solid 1px #e0e0e0;display:block;padding:5px;text-decoration:none}
+.previous a:hover,.next a:hover{background-color:#ddf;border:solid 1px #00f}
+#id_start_date_1{display:block}
+.hide_show_button,.hide_show_button:visited{color:#888;text-decoration:none}
+.transaction_table{display:none;margin:0 0 0 20px;width:100%}
+.transaction_table tbody tr td{color:#888;width:20%}
+.transaction_table tbody tr td.wide{width:60%}

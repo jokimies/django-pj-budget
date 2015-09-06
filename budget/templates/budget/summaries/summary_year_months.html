@@ -1,0 +1,69 @@
+{% extends 'budget/base.html' %}
+{% load budget %}
+{% load cycle from future %} 
+
+{% block title %}Year Summary For {{ start_date|date:"Y" }}{% endblock %}
+
+{% block budget_content %}
+    <h2>Year Summary For {{ start_date|date:"Y" }}</h2>
+    
+    <h3>{{ budget.name }}</h3>
+    
+    <table class="report_table">
+        <thead>
+            <tr>
+                <th>Category</th>
+		{% for month in months %}
+		    <th class="numeric"> {{ month }} </th>
+		{% endfor %}
+                <th class="numeric">Estimated Total</th>
+                <th class="numeric">Actual Total</th>
+            </tr>
+        </thead>
+        <tbody>
+	    {% if estimates_and_actuals %}
+		{% for category, monthly_data, yearly_actual_total_cat, estimated_yearly_total_cat in estimates_and_actuals %}
+		    <tr class="{% cycle odd,even %}">
+			{% if not category.level %}
+			    <td style="padding-left: 0px">
+			{% else %} 
+			    <td style="padding-left: {{ category.level }}9px">
+			{% endif %}
+			{{ category.name }} 
+			    </td>
+			{% for data in monthly_data %}
+			    <td>
+				{{ data.actual_monthly_total_in_category  }}
+			    </td>
+			{% endfor %}
+			<td> 
+			    {{ estimated_yearly_total_cat }}
+			</td>
+			<td>
+			    {{ yearly_actual_total_cat }}
+			</td>
+		    </tr>
+		{% endfor %}
+	    {% endif %} 
+        </tbody>
+        <tfoot>
+            <tr class="divider">
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr class="total">
+                <td>
+                    <strong>Total:</strong>
+                </td>
+		{% for month in months %}
+		    <td></td>
+		{% endfor %}
+                <td class="numeric">${{ budget.yearly_estimated_total|stringformat:".02f" }}</td>
+                <td class="numeric">
+                    <span class="{% colorize_amount budget.yearly_estimated_total actual_yearly_total %}">${{ actual_yearly_total|stringformat:".02f" }}</span>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+{% endblock budget_content %}

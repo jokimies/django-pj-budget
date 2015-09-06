@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import *
+from django.conf.urls import patterns, url, include
 
 """
 Needed Urls:
@@ -22,6 +22,7 @@ urlpatterns = patterns('budget.views',
     # Summaries
     url(r'^summary/$', 'summary_list', name='budget_summary_list'),
     url(r'^summary/(?P<year>\d{4})/$', 'summary_year', name='budget_summary_year'),
+    url(r'^summary/(?P<year>\d{4})/months/$', 'summary_year_with_months', name='budget_summary_year_with_months'),
     url(r'^summary/(?P<year>\d{4})/(?P<month>\d{1,2})/$', 'summary_month', name='budget_summary_month'),
     
     # Categories

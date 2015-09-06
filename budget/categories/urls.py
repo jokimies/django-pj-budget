@@ -1,4 +1,4 @@
-from django.conf.urls.defaults import *
+from django.conf.urls import patterns, url, include
 
 urlpatterns = patterns('budget.categories.views',
     url(r'^$', 'category_list', name='budget_category_list'),

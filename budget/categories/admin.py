@@ -1,6 +1,8 @@
 from django.contrib import admin
+#
+from mptt.admin import MPTTModelAdmin
+#
 from budget.categories.models import Category
-
 
 class CategoryAdmin(admin.ModelAdmin):
     fieldsets = (
@@ -20,4 +22,4 @@ class CategoryAdmin(admin.ModelAdmin):
     search_fields = ('name',)
 
 
-admin.site.register(Category, CategoryAdmin)
+admin.site.register(Category, MPTTModelAdmin)

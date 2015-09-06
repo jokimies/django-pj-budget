@@ -1,0 +1,75 @@
+{% extends 'budget/base.html' %}
+{% load budget %}
+{% load mptt_tags %}
+{% load cycle from future %} 
+
+{% block title %}Month Summary For {{ start_date|date:"F Y" }}{% endblock title %}
+
+{% block budget_content %}
+    <h2>Month Summary For {{ start_date|date:"F Y" }}</h2>
+    
+    <h3>{{ budget.name }}</h3>
+
+    <table class="report_table">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th class="numeric">Estimated Total</th>
+                <th class="numeric">Actual Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if categories_estimates_and_transactions %}
+	      {% for cet_group in categories_estimates_and_transactions %}
+		<tr class="{% cycle odd,even %}">  
+		  <td style="padding-left: {{ cet_group.category.level }}0px">
+		    {{ cet_group.category.name }}   
+		    {% if cet_group.transactions %}
+		      <a href="#" id="id_hide_show_{{ cet_group.estimate.category.slug }}" class="hide_show_button">[+]</a>
+		      <table id="id_hidden_transaction_list_{{ cet_group.estimate.category.slug }}" class="transaction_table">
+			<tbody>
+			  {% for trans in cet_group.transactions %}
+			    <tr>
+			      <td class="wide">{{ trans.notes }}</td>
+			      <td>{{ trans.date|date:"m/d/Y" }}</td>
+			      <td class="numeric">
+				${{ trans.amount|stringformat:".02f" }}
+			      </td>
+			    </tr>
+			  {% endfor %}
+			</tbody>
+		      </table>
+		      {% endif %} {# cet_group.transactions #}
+                  </td>
+                  <td class="numeric">{{ cet_group.estimate.amount|stringformat:".02f" }}</td>
+                  <td class="numeric">
+		    <span class="{% colorize_amount cet_group.estimate.amount cet_group.actual_amount %}">{{ cet_group.actual_amount|stringformat:".02f" }}</span>
+                  </td>
+                </tr> 
+		{% endfor %} {# cet_group in estimates_and_transactions #}
+		
+              {% else %}
+                <tr>
+                    <td colspan="3">No data to show.</td>
+                </tr>
+              {% endif %}
+        </tbody>
+        <tfoot>
+            <tr class="divider">
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr class="total">
+                <td>
+                    <strong>Total:</strong>
+                </td>
+                <td class="numeric">${{ estimated_total|stringformat:".02f" }}</td>
+                <td class="numeric">
+                    <span class="{% colorize_amount estimated_total actual_total %}">${{ actual_total|stringformat:".02f" }}</span>
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+{% endblock budget_content %}

@@ -1,14 +1,19 @@
 import datetime
 from decimal import Decimal
+
 from django.db import models
-from budget.categories.models import Category, StandardMetadata, ActiveManager
+from django.db.models import Q
+
+
+from budget.base_models import ActiveManager, StandardMetadata
+from budget.categories.models import Category
 from budget.transactions.models import Transaction
 from django.utils.translation import ugettext_lazy as _
 
 
 class BudgetManager(ActiveManager):
     def most_current_for_date(self, date):
-        return super(BudgetManager, self).get_query_set().filter(start_date__lte=date).latest('start_date')
+        return super(BudgetManager, self).get_queryset().filter(start_date__lte=date).latest('start_date')
 
 
 class Budget(StandardMetadata):
@@ -32,26 +37,114 @@ class Budget(StandardMetadata):
     def monthly_estimated_total(self):
         total = Decimal('0.0')
         for estimate in self.estimates.exclude(is_deleted=True):
-            total += estimate.amount
+            if estimate.repeat == 'MONTHLY':
+                total += estimate.amount
+            # If estimate is not monthly, it happens in certain month. Use
+            # average for that estimate
+            else: 
+                total += estimate.amount / 12
+        return total
+
+    def monthly_estimated_total_current_month(self, month):
+        total = Decimal('0.0')
+        for estimate in self.estimates.exclude(is_deleted=True):
+            if estimate.repeat == 'MONTHLY':
+                total += estimate.amount
+            # If estimate is not monthly, it happens in certain month. Use
+            # average for that estimate
+            elif estimate.occurring_month == month:
+                total += estimate.amount
         return total
 
     def yearly_estimated_total(self):
         return self.monthly_estimated_total() * 12
 
-    def estimates_and_transactions(self, start_date, end_date):
-        estimates_and_transactions = []
-        actual_total = Decimal('0.0')
+    def categories_estimates_and_transactions(self, start_date, end_date, 
+                                   categories, occurrence_query_list = Q()):
 
-        for estimate in self.estimates.exclude(is_deleted=True):
+        categories_estimates_and_transactions = []
+
+        actual_total = Decimal('0.0')
+        for category in categories:
+            actual_amount = Decimal('0.0')
+            estimate_found = False
+
+            # Search for each category, and where occurence match
+            query_list = (Q(category=category)  & occurrence_query_list)
+
+            for estimate in self.estimates.filter(query_list).exclude(is_deleted=True):
+                estimate_found = True
+                actual_amount = estimate.actual_amount(start_date, end_date)
+                actual_total += actual_amount
+                categories_estimates_and_transactions.append({
+                    'category': category,
+                    'estimate': estimate,
+                    'transactions': estimate.actual_transactions(start_date, end_date),
+                    'actual_amount': actual_amount,
+                })
+            if not estimate_found:
+                # Set estiamte and transactions to empty query set if no
+                # estimate found
+                categories_estimates_and_transactions.append({
+                    'category': category,
+                    'estimate': self.estimates.none(),
+                    'transactions': Transaction.objects.none(),
+                    'actual_amount': actual_amount,
+                })
+
+        return (categories_estimates_and_transactions, actual_total)
+
+    def category_estimates(self, cat_query):
+        """
+        Returns a query list of estimates for certain category
+
+        cat_query: Q() object containing wanted category 'category=<wanted_cat'
+        """
+        
+        return (self.estimates.filter(cat_query).exclude(is_deleted=True))
+
+    def actuals(self, start_date, end_date, estimate):
+        """
+        
+        """
+        estimates_and_actuals = []
+        actual_total = Decimal('0.0')
+        estimate_found = False
+        actual_amount = None
+        actual_amount = estimate.actual_amount(start_date, end_date)
+        estimates_and_actuals.append({
+            'estimate': estimate,
+            'actual_amount': actual_amount,
+        })
+
+
+    def estimates_and_actuals(self, start_date, end_date, 
+                              cat_query, occurrence_query_list = Q()):
+        # Search for each category, and where occurence match
+        query_list = (cat_query  & occurrence_query_list)
+        estimates_and_actuals = []
+        actual_total = Decimal('0.0')
+        estimate_found = False
+        actual_amount = None
+
+        for estimate in self.estimates.filter(query_list).exclude(is_deleted=True):
+            estimate_found = True
             actual_amount = estimate.actual_amount(start_date, end_date)
             actual_total += actual_amount
-            estimates_and_transactions.append({
-                'estimate': estimate,
-                'transactions': estimate.actual_transactions(start_date, end_date),
+            estimates_and_actuals.append({
+                    'estimate': estimate,
+                    'actual_amount': actual_amount,
+                })
+        if not estimate_found:
+            # Set estimate and transactions to empty query set if no
+            # estimate found
+            estimates_and_actuals.append({
+                'estimate': self.estimates.none(),
                 'actual_amount': actual_amount,
             })
-        
-        return (estimates_and_transactions, actual_total)
+
+        return (estimates_and_actuals, actual_total)
+
 
     def actual_total(self, start_date, end_date):
         actual_total = Decimal('0.0')
@@ -73,9 +166,45 @@ class BudgetEstimate(StandardMetadata):
     Some examples include possible items like "Mortgage", "Rent", "Food", "Misc"
     and "Car Payment".
     """
+
+    REPEAT_CHOICES = (
+        ('BIWEEKLY', _('Every 2 Weeks')),
+        ('MONTHLY', _('Every Month')),
+    )
+
+    JANUARY = 1
+    FEBRUARY = 2
+    MARCH = 3
+    APRIL = 4
+    MAY = 5
+    JUNE = 6
+    JULY = 7
+    AUGUST = 8
+    SEPTEMBER = 9
+    OCTOBER = 10
+    NOVEMBER = 11
+    DECEMBER = 12
+
+    MONTH_CHOICES = (
+        (JANUARY, _('January')),
+        (FEBRUARY, _('February')),
+        (MARCH, _('March')),
+        (APRIL, _('April')),
+        (MAY, _('May')),
+        (JUNE, _('June')),
+        (JULY, _('July')),
+        (AUGUST, _('August')),
+        (SEPTEMBER, _('September')),
+        (OCTOBER, _('October')),
+        (NOVEMBER, _('November')),
+        (DECEMBER, _('December')),
+    )
+
     budget = models.ForeignKey(Budget, related_name='estimates', verbose_name=_('Budget'))
     category = models.ForeignKey(Category, related_name='estimates', verbose_name=_('Category'))
     amount = models.DecimalField(_('Amount'), max_digits=11, decimal_places=2)
+    repeat = models.CharField(_('Repeat'), max_length=15, choices=REPEAT_CHOICES, blank=True)
+    occurring_month = models.IntegerField(_('Occuring month'), null=True, blank=True, choices=MONTH_CHOICES)
 
     objects = models.Manager()
     active = ActiveManager()
@@ -84,7 +213,12 @@ class BudgetEstimate(StandardMetadata):
         return u"%s - %s" % (self.category.name, self.amount)
 
     def yearly_estimated_amount(self):
-        return self.amount * 12
+        if self.repeat == 'MONTHLY':
+            return self.amount * 12
+        else:
+            # payment is estimated to happen only  in certain
+            # month, use that value
+            return self.amount
 
     def actual_transactions(self, start_date, end_date):
         # Estimates should only report on expenses to prevent incomes from 

@@ -1,0 +1,21 @@
+{% extends 'budget/base.html' %}
+
+{% block title %}Add An Estimate{% endblock %}
+
+{% block budget_content %}
+    <h2>Add An Estimate</h2>
+    
+    <form method="post" action=".">{% csrf_token %}
+        <table class="form_table">
+            {{ form.as_table }}
+            <tr>
+                <td>&nbsp;</td>
+                <td>
+                    <input class="btn btn-primary" type="submit" name="confirmed" value="Save">
+                    or
+                    <a href="{% url 'budget_budget_list' %}">Cancel</a>
+                </td>
+            </tr>
+        </table>
+    </form>
+{% endblock budget_content %}

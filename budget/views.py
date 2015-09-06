@@ -1,5 +1,8 @@
 import datetime
+import calendar
 from decimal import Decimal
+import operator
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, InvalidPage
@@ -7,11 +10,12 @@ from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
+from django.db.models import Q
+
 from budget.models import Budget, BudgetEstimate
-from budget.categories.models import Category
+from budget.categories.models import Category, get_queryset_descendants
 from budget.transactions.models import Transaction
 from budget.forms import BudgetEstimateForm, BudgetForm
-
 
 def dashboard(request, budget_model_class=Budget, transaction_model_class=Transaction, template_name='budget/dashboard.html'):
     """
@@ -52,7 +56,7 @@ def dashboard(request, budget_model_class=Budget, transaction_model_class=Transa
     latest_expenses = transaction_model_class.expenses.get_latest()
     latest_incomes = transaction_model_class.incomes.get_latest()
 
-    estimated_amount = budget.monthly_estimated_total()
+    estimated_amount = budget.monthly_estimated_total_current_month(today.month)
     amount_used = budget.actual_total(start_date, end_date)
 
     if estimated_amount == 0:
@@ -119,13 +123,108 @@ def summary_year(request, year, budget_model_class=Budget, template_name='budget
     start_date = datetime.date(int(year), 1, 1)
     end_date = datetime.date(int(year), 12, 31)
     budget = budget_model_class.active.most_current_for_date(end_date)
-    estimates_and_transactions, actual_total = budget.estimates_and_transactions(start_date, end_date)
+
+    root_nodes = Category.root_nodes.all()
+    categories = get_queryset_descendants(root_nodes, include_self=True)
+
+    categories_estimates_and_transactions, actual_total = budget.categories_estimates_and_transactions(start_date, end_date, categories, Q())
     return render_to_response(template_name, {
         'budget': budget,
-        'estimates_and_transactions': estimates_and_transactions,
+        'categories_estimates_and_transactions': categories_estimates_and_transactions,
         'actual_total': actual_total,
         'start_date': start_date,
         'end_date': end_date,
+    }, context_instance=RequestContext(request))
+
+def summary_year_with_months(request, year, budget_model_class=Budget, template_name='budget/summaries/summary_year_months.html'):
+    """
+    Displays a budget report for the year to date, month by month
+
+    Templates: ``budget/summaries/summary_year_months.html``
+    Context:
+        budget
+            the most current budget object for the year
+        estimates_and_transactions
+            a list of dictionaries containing each budget estimate, the corresponding transactions and total amount of the transactions
+        actual_total
+            the total amount of all transactions represented in the budget for the year
+        start_date
+            the first date for the year
+        end_date
+            the last date for the year
+    """
+
+    root_nodes = Category.root_nodes.all()
+    categories = get_queryset_descendants(root_nodes, include_self=True)
+    view_cet = []
+    budget = None
+    estimates_and_actuals = []
+
+    year_end_date = datetime.date(int(year), 12, 31)
+    budget = budget_model_class.active.most_current_for_date(year_end_date)
+
+    # Total amount of money used in a year
+    actual_yearly_total = Decimal(0.0)
+
+    for category in categories:
+        # Total used in month per category
+        actual_yearly_total_in_category = Decimal(0.0)
+        estimated_yearly_total_in_category = Decimal(0.0)
+        
+        monthly_data_per_category = []
+
+        category_query = Q(category=category)
+        estimates = budget.category_estimates(category_query)
+        for estimate in estimates:
+            #pprint.pprint(estimate)
+            monthly_data=[]
+            monthly_data_per_category = []
+
+            actual_spent_amount_in_month = None
+
+            estimated_yearly_amount = estimate.yearly_estimated_amount()
+            estimated_yearly_total_in_category += estimated_yearly_amount
+            monthly_data_per_category.append(category)
+            for month_number, month_name in enumerate(calendar.month_name):
+
+                actual_monthly_total_in_category = Decimal(0.0)
+
+                # month number 0 is empty string
+                if month_number == 0:
+                    continue
+
+                start_date = datetime.date(int(year), month_number, 1)
+                end_date = datetime.date(int(year), 
+                                         month_number, 
+                                         calendar.monthrange(int(year), 
+                                                             month_number)[1])
+            
+                actual_monthly_total_in_category = estimate.actual_amount(start_date, end_date)
+
+                # Get estimates and actuals for the date range
+                #eaa, actual_monthly_total_cat = budget.estimates_and_actuals(start_date, end_date, category_query, Q())
+                actual_yearly_total_in_category += actual_monthly_total_in_category
+                monthly_data.append({
+                    'actual_monthly_total_in_category': actual_monthly_total_in_category,
+                })
+
+            actual_yearly_total += actual_yearly_total_in_category
+
+            monthly_data_per_category.append(monthly_data)
+
+            # Total per category within year
+            monthly_data_per_category.append(actual_yearly_total_in_category)
+            monthly_data_per_category.append(estimated_yearly_total_in_category)
+            # Store monthly data for current category
+            estimates_and_actuals.append(monthly_data_per_category)
+
+    return render_to_response(template_name, {
+        'months' : calendar.month_abbr[1:],
+        'categories': categories,
+        'budget': budget,
+        'estimates_and_actuals': estimates_and_actuals,
+        'actual_yearly_total': actual_yearly_total,
+        'start_date': start_date,
     }, context_instance=RequestContext(request))
 
 
@@ -154,14 +253,25 @@ def summary_month(request, year, month, budget_model_class=Budget, template_name
         end_month = 1
 
     end_date = datetime.date(end_year, end_month, 1) - datetime.timedelta(days=1)
+    # Search for monthly expenses and those estimated to happen in this month
+    query_list = (Q(repeat='MONTHLY') | Q(occurring_month=int(month)))
+
     budget = budget_model_class.active.most_current_for_date(end_date)
-    estimates_and_transactions, actual_total = budget.estimates_and_transactions(start_date, end_date)
+    estimated_total = budget.monthly_estimated_total_current_month(int(month))
+
+    root_nodes = Category.root_nodes.all()
+    categories = get_queryset_descendants(root_nodes, include_self=True)
+
+    categories_estimates_and_transactions, actual_total = budget.categories_estimates_and_transactions(start_date, end_date, categories, query_list)
+
     return render_to_response(template_name, {
         'budget': budget,
-        'estimates_and_transactions': estimates_and_transactions,
+        'categories_estimates_and_transactions': categories_estimates_and_transactions,
         'actual_total': actual_total,
         'start_date': start_date,
         'end_date': end_date,
+        'estimated_total': estimated_total,
+        'categories': categories,
     }, context_instance=RequestContext(request))
 
 
@@ -275,7 +385,7 @@ def estimate_list(request, budget_slug, budget_model_class=Budget, model_class=B
             current page of estimate objects
     """
     budget = get_object_or_404(budget_model_class.active.all(), slug=budget_slug)
-    estimates_list = model_class.active.all()
+    estimates_list = model_class.active.filter(budget__id=budget.id).all()
     try:
         paginator = Paginator(estimates_list, getattr(settings, 'BUDGET_LIST_PER_PAGE', 50))
         page = paginator.page(request.GET.get('page', 1))

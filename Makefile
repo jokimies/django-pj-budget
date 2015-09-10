@@ -1,3 +1,8 @@
+GITCHLOGBIN   = gitchangelog
+CHANGELOGFILE = HISTORY.rst
+GITCHLOG      = $(GITCHLOGBIN) > $(CHANGELOGFILE) || exit 1
+TRUNCATE      = python truncate.py $(CHANGELOGFILE)
+
 .PHONY: clean-pyc clean-build docs
 
 help:
@@ -41,10 +46,12 @@ coverage:
 docs:
 	rm -f docs/django-pj-budget.rst
 	rm -f docs/modules.rst
+	$(GITCHLOG)
+	$(TRUNCATE)
 	sphinx-apidoc -o docs/ budget
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
-	open docs/_build/html/index.html
+	sh replace_version.sh
 
 release: clean
 	python setup.py sdist upload

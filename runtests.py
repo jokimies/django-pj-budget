@@ -1,9 +1,5 @@
 import sys
-import environ
 import os
-from unipath import Path
-
-PROJECT_ROOT = Path(os.path.abspath(__file__))
 
 try:
     from django.conf import settings

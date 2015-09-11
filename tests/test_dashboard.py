@@ -4,9 +4,9 @@ from django.test import TestCase
 from django.test.client import Client
 
 # Own
-from .basetest import TestBase
+from .basetest import BaseTest
 
-class DashboardListTest(TestCase, TestBase):
+class DashboardListTest(TestCase, BaseTest):
     """
     This needs to be converted to use FactoryBoy for data
     """

@@ -83,5 +83,12 @@ def get_queryset_descendants(nodes, include_self=False):
             lft -=1 
             rght += 1 
         filters.append(Q(tree_id=n.tree_id, lft__gt=lft, rght__lt=rght)) 
-    q = reduce(operator.or_, filters) 
-    return Category.objects.filter(q) 
+    # q = reduce(operator.or_, filters)
+    # Removing reduce, as reduced from std library
+    # (http://www.artima.com/weblogs/viewpost.jsp?thread=98196 )
+    # Do it with for loop instead, just of everything together
+
+    query = Q()
+    for filter in filters:
+        query |= filter
+    return Category.objects.filter(query)

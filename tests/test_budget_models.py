@@ -11,7 +11,6 @@ from django.core.urlresolvers import reverse
 from budget.categories.models import Category, get_queryset_descendants
 
 from .utils import *
-from .basetest import TestBase
 from .factories import *
         
 class BudgetModelTest(TestCase):

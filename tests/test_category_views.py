@@ -4,9 +4,9 @@ from django.test.client import Client
 from django.core.urlresolvers import reverse
 
 # Own 
-from .basetest import TestBase
+from .basetest import BaseTest
 
-class CategoryListTest(TestCase, TestBase):
+class CategoryListTest(TestCase, BaseTest):
 
     #fixtures = ['category_estimate.json']
 
@@ -27,7 +27,7 @@ class CategoryListTest(TestCase, TestBase):
         self.assertEqual(response.status_code, 404)
 
 
-class CategoryAddTest(TestCase, TestBase):
+class CategoryAddTest(TestCase, BaseTest):
     def setUp(self):
         self.c = Client()
         self.url = reverse('budget_category_add')

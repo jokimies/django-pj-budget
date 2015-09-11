@@ -1,7 +1,8 @@
 # Base test class
 # File named like this to not to match test*.py that test runner is looking for
 
-class TestBase(object):
+class BaseTest(object):
+
     def test_title(self):
         """
         Check if there's correct <title> in the page.
@@ -11,4 +12,7 @@ class TestBase(object):
         # In case of redirect, follow to the redirected page
         response = self.c.get(self.url, follow=True)
         #print self.url
-        self.assertRegexpMatches(response.content, '<title>\S+.* \|')
+
+        # In python3 response.content is 'bytes'
+        # https://docs.djangoproject.com/en/1.8/topics/python3/#httprequest-and-httpresponse-objects 
+        self.assertRegexpMatches(str(response.content), '<title>\S+.* \|')

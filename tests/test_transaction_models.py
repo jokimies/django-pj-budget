@@ -9,7 +9,6 @@ from django.core.urlresolvers import reverse
 # Own
 from .factories import *
 from budget.transactions.models import Transaction
-from .basetest import TestBase
 
 class TransactionModelTest(TestCase):
 

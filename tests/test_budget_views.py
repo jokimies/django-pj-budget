@@ -8,14 +8,14 @@ from django.test.client import Client
 from django.core.urlresolvers import reverse
 
 # Own
-from .basetest import TestBase
+from .basetest import BaseTest
 
 #
 #
 #
 #from budget.tests.factories import *
 
-class BudgetDasboardsTest(TestCase, TestBase):
+class BudgetDasboardsTest(TestCase, BaseTest):
 
     # fixtures = ['category_estimate.json']
 

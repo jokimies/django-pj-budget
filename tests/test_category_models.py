@@ -11,7 +11,6 @@ from django.core.urlresolvers import reverse
 from budget.transactions.models import Transaction
 
 from .factories import *
-from .basetest import TestBase
 
 class CategoryModelTest(TestCase):
 

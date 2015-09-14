@@ -153,70 +153,13 @@ def summary_year_with_months(request, year, budget_model_class=Budget, template_
         end_date
             the last date for the year
     """
+    year_end_date = datetime.date(int(year), 12, 31)
 
     root_nodes = Category.root_nodes.all()
     categories = get_queryset_descendants(root_nodes, include_self=True)
-    view_cet = []
-    budget = None
-    estimates_and_actuals = []
-
-    year_end_date = datetime.date(int(year), 12, 31)
     budget = budget_model_class.active.most_current_for_date(year_end_date)
-
-    # Total amount of money used in a year
-    actual_yearly_total = Decimal(0.0)
-
-    for category in categories:
-        # Total used in month per category
-        actual_yearly_total_in_category = Decimal(0.0)
-        estimated_yearly_total_in_category = Decimal(0.0)
-        
-        monthly_data_per_category = []
-
-        category_query = Q(category=category)
-        estimates = budget.category_estimates(category_query)
-        for estimate in estimates:
-            #pprint.pprint(estimate)
-            monthly_data=[]
-            monthly_data_per_category = []
-
-            actual_spent_amount_in_month = None
-
-            estimated_yearly_amount = estimate.yearly_estimated_amount()
-            estimated_yearly_total_in_category += estimated_yearly_amount
-            monthly_data_per_category.append(category)
-            for month_number, month_name in enumerate(calendar.month_name):
-
-                actual_monthly_total_in_category = Decimal(0.0)
-
-                # month number 0 is empty string
-                if month_number == 0:
-                    continue
-
-                start_date = datetime.date(int(year), month_number, 1)
-                end_date = datetime.date(int(year), 
-                                         month_number, 
-                                         calendar.monthrange(int(year), 
-                                                             month_number)[1])
-            
-                actual_monthly_total_in_category = estimate.actual_amount(start_date, end_date)
-
-                # Get estimates and actuals for the date range
-                #eaa, actual_monthly_total_cat = budget.estimates_and_actuals(start_date, end_date, category_query, Q())
-                actual_yearly_total_in_category += actual_monthly_total_in_category
-                monthly_data.append({
-                    'actual_monthly_total_in_category': actual_monthly_total_in_category,
-                })
-
-            actual_yearly_total += actual_yearly_total_in_category
-
-            monthly_data_per_category.append(monthly_data)
-
-            # Total per category within year
-            monthly_data_per_category.append(actual_yearly_total_in_category)
-            monthly_data_per_category.append(estimated_yearly_total_in_category)
-            # Store monthly data for current category
-            estimates_and_actuals.append(monthly_data_per_category)
+    estimates_and_actuals, actual_yearly_total = budget.categories_yearly_estimates_and_actuals(categories,
+                                                               budget, year)
 
     return render_to_response(template_name, {
         'months' : calendar.month_abbr[1:],
@@ -224,7 +167,7 @@ def summary_year_with_months(request, year, budget_model_class=Budget, template_
         'budget': budget,
         'estimates_and_actuals': estimates_and_actuals,
         'actual_yearly_total': actual_yearly_total,
-        'start_date': start_date,
+        'year': year,
     }, context_instance=RequestContext(request))
 
 

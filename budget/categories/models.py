@@ -1,6 +1,6 @@
 import datetime
 from decimal import Decimal
-import operator
+from django.utils.encoding import python_2_unicode_compatible
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -39,6 +39,7 @@ class CategoryRootNodeManager(TreeManager):
     def get_queryset(self):
         return super(CategoryRootNodeManager, self).get_queryset().filter(level=0)
 
+@python_2_unicode_compatible
 class Category(StandardMetadataMPTT):
     """
     Categories are the means to loosely tie together the transactions and
@@ -61,7 +62,7 @@ class Category(StandardMetadataMPTT):
         verbose_name = _('Category')
         verbose_name_plural = _('Categories')
     
-    def __unicode__(self):
+    def __str__(self):
         return self.name
     
 

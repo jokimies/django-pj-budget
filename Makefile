@@ -48,10 +48,10 @@ docs:
 	rm -f docs/modules.rst
 	$(GITCHLOG)
 	$(TRUNCATE)
+	sh replace_version.sh
 	sphinx-apidoc -o docs/ budget
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
-	sh replace_version.sh
 
 release: clean
 	python setup.py sdist upload

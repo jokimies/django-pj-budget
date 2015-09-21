@@ -2,10 +2,10 @@
 {% load budget %}
 {% load cycle from future %} 
 
-{% block title %}Year Summary For {{ start_date|date:"Y" }}{% endblock %}
+{% block title %}Year Summary For {{ year }}{% endblock %}
 
 {% block budget_content %}
-    <h2>Year Summary For {{ start_date|date:"Y" }}</h2>
+    <h2>Year Summary For {{ year }}</h2>
     
     <h3>{{ budget.name }}</h3>
     

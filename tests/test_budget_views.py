@@ -12,12 +12,13 @@ from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.template import RequestContext
 from django.conf import settings
+from django.db.models import Q
 
 # Own
 from .basetest import BaseTest
 from .factories import *
 
-from budget.views import summary_year_with_months
+from budget.views import summary_year_detail, summary_year_no_months
 from budget.categories.models import Category, get_queryset_descendants
 #
 #
@@ -48,7 +49,7 @@ class BudgetYearlySummaryTest(TestCase):
         self.year = "2008"
         
         self.client = Client()
-        self.url = reverse('budget_summary_year_with_months', args=(self.year,))
+        self.url = reverse('budget_summary_year', args=(self.year,))
 
         amount_groceries1 = Decimal('68.30')
         amount_groceries2 = Decimal('34.39')
@@ -56,6 +57,9 @@ class BudgetYearlySummaryTest(TestCase):
         total_groceries = amount_groceries1 + amount_groceries2
         total_transactions = total_groceries + amount_loan
     
+        self.start_date = datetime.date(int(self.year), 1, 1)
+        self.end_date = datetime.date(int(self.year), 12, 31)
+
         #Setup and crate needed budgets, estimates, etc.
         self.budget = BudgetFactory(start_date=datetime.datetime(2008, 1, 1))
         cat_food = CategoryFactory(name='Food')
@@ -93,21 +97,50 @@ class BudgetYearlySummaryTest(TestCase):
                                                                        self.year)
         self.estimates_and_actuals, self.actual_yearly_total = yearly_things
 
-    def test_monthly_view_returns_correct_page(self):
-
+    def test_yearly_summary_without_months_returns_correct_page(self):
         request = HttpRequest()
-        template = 'budget/summaries/summary_year_months.html'
+        template = 'budget/summaries/summary_year.html'
 
-        response = summary_year_with_months(request, 
+        response = summary_year_no_months(request, 
                                             self.year, 
                                             template_name=template)
+        categories_estimates_and_transactions, actual_total = self.budget.categories_estimates_and_transactions(self.start_date, self.end_date, self.categories, Q())
+
         expected_html = render_to_string(template, {
             'months' : calendar.month_abbr[1:],
             'categories': self.categories,
+            'categories_estimates_and_transactions': categories_estimates_and_transactions,
+            'actual_total': actual_total,
+            'start_date': self.start_date,
+            'end_date': self.end_date,
             'budget': self.budget,
-            'estimates_and_actuals': self.estimates_and_actuals,
-            'actual_yearly_total': self.actual_yearly_total,
             'year': self.year,
         }, RequestContext(request))
 
         self.assertMultiLineEqual(response.content.decode(), expected_html)
+
+        
+    def test_summary_uses_summary_list_template(self):
+        """
+        Verifies 'main' summary page uses summary_list template
+        """
+        
+        template = 'budget/summaries/summary_list.html'
+        
+        response = self.client.get(reverse('budget_summary_list'))
+        self.assertTemplateUsed(response, template)
+
+    def test_yearly_summary_uses_detailed_template(self):
+        """
+        Test yearlyl summary uses template with montly details
+        """
+
+        template = 'budget/summaries/summary_year_months.html'
+
+        response = self.client.get(
+            reverse(
+                'budget_summary_year',
+                kwargs= { 'year': self.year }
+            )
+        )
+        self.assertTemplateUsed(response, template)

@@ -6,7 +6,10 @@ a,a:visited,a:hover{color:#00f}
 img{border-width:0}
 ul li,ol li,dl dd{margin-left:20px}
 table{border-collapse:collapse;margin-bottom:10px}
-table tr th,table tr td{text-align:left;vertical-align:top;padding:4px}
+table tr td,table th td{text-align:left;vertical-align:top;padding:6px 6px 6px 8px}
+table th{background:#eceded}
+table td{border-left:1px solid #f4f5f5}
+table td:first-child{border-left:none}
 label{margin-right:10px}
 input,select,textarea{margin-bottom:5px}
 #page_wrapper{background-color:#fff;margin-bottom:10px;margin-left:auto;margin-right:auto;margin-top:10px;text-align:left;width:760px}

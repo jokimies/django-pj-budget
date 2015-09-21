@@ -103,7 +103,8 @@ def summary_list(request, transaction_model_class=Transaction, template_name='bu
     }, context_instance=RequestContext(request))
 
 
-def summary_year(request, year, budget_model_class=Budget, template_name='budget/summaries/summary_year.html'):
+def summary_year_no_months(request, year, budget_model_class=Budget, 
+                           template_name='budget/summaries/summary_year.html'):
     """
     Displays a budget report for the year to date.
 
@@ -132,11 +133,10 @@ def summary_year(request, year, budget_model_class=Budget, template_name='budget
         'budget': budget,
         'categories_estimates_and_transactions': categories_estimates_and_transactions,
         'actual_total': actual_total,
-        'start_date': start_date,
-        'end_date': end_date,
+        'year': year,
     }, context_instance=RequestContext(request))
 
-def summary_year_with_months(request, year, budget_model_class=Budget, template_name='budget/summaries/summary_year_months.html'):
+def summary_year_detail(request, year, budget_model_class=Budget, template_name='budget/summaries/summary_year_months.html'):
     """
     Displays a budget report for the year to date, month by month
 

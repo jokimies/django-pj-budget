@@ -25,21 +25,21 @@
 		{% for category, monthly_data, yearly_actual_total_cat, estimated_yearly_total_cat in estimates_and_actuals %}
 		    <tr class="{% cycle odd,even %}">
 			{% if not category.level %}
-			    <td style="padding-left: 0px">
+			    <td style="padding-left: 0px; font-weight: bold">
 			{% else %} 
 			    <td style="padding-left: {{ category.level }}9px">
 			{% endif %}
 			{{ category.name }} 
 			    </td>
 			{% for data in monthly_data %}
-			    <td>
+			    <td class="numeric">
 				{{ data.actual_monthly_total_in_category  }}
 			    </td>
 			{% endfor %}
-			<td> 
+			<td class="numeric">
 			    {{ estimated_yearly_total_cat }}
 			</td>
-			<td>
+			<td class="numeric">
 			    {{ yearly_actual_total_cat }}
 			</td>
 		    </tr>

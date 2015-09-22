@@ -1,6 +1,5 @@
-=============================
 django-pj-budget
-=============================
+================
 
 .. image:: https://badge.fury.io/py/django-pj-budget.png
     :target: https://badge.fury.io/py/django-pj-budget

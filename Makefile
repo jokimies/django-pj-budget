@@ -49,6 +49,7 @@ docs:
 	$(GITCHLOG)
 	$(TRUNCATE)
 	sh replace_version.sh
+	python setup.py check --restructuredtext
 	sphinx-apidoc -o docs/ budget
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html

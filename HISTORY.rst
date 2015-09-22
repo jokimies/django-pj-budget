@@ -1,6 +1,19 @@
 Changelog
 =========
 
+v2.1.1 (2015-09-22)
+-------------------
+
+Documentation
+~~~~~~~~~~~~~
+
+- Attempt to fix rst formatting on PyPi. [Petri Jokimies]
+
+Other
+~~~~~
+
+- Change history for new version. [Petri Jokimies]
+
 v2.1.0 (2015-09-22)
 -------------------
 

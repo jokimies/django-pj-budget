@@ -1,6 +1,17 @@
 Changelog
 =========
 
+v2.1.2 (2015-12-14)
+-------------------
+
+- *yearly summary*: Corrected counting & display. [Petri Jokimies]
+
+
+
+
+
+
+
 v2.1.1 (2015-09-22)
 -------------------
 

@@ -55,7 +55,7 @@ def yearly_estimates_and_actuals():
     amount_loan = Decimal('800.0')
     total_groceries = amount_groceries1 + amount_groceries2
     total_transactions = total_groceries + amount_loan
-    
+    groceries_estimate = Decimal('800.0')
     #Setup and crate needed budgets, estimates, etc.
     budget = BudgetFactory(start_date=datetime.datetime(2008, 1, 1))
     cat_food = CategoryFactory(name='Food')
@@ -70,7 +70,7 @@ def yearly_estimates_and_actuals():
                                      budget=budget,
                                      category=cat_mortgage,
     )
-    est_groceries = BudgetEstimateFactory(amount=Decimal('800.0'),
+    est_groceries = BudgetEstimateFactory(amount=groceries_estimate,
                                           budget=budget,
                                           category=cat_groceries,
                                       )
@@ -93,4 +93,5 @@ def yearly_estimates_and_actuals():
                                                            budget, year)
 
     # Return yearly things and toral_transcations
-    return yearly_things + (total_transactions, total_groceries)
+    return yearly_things + (total_transactions, 
+                           total_groceries, groceries_estimate)

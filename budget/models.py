@@ -27,7 +27,8 @@ class Budget(StandardMetadata):
     name = models.CharField(_('Name'), max_length=255)
     slug = models.SlugField(_('Slug'), unique=True)
     start_date = models.DateTimeField(_('Start Date'),
-            default=datetime.datetime.now, db_index=True)
+                                      default=datetime.datetime.now,
+                                      db_index=True)
 
     objects = models.Manager()
     active = BudgetManager()
@@ -42,7 +43,7 @@ class Budget(StandardMetadata):
                 total += estimate.amount
             # If estimate is not monthly, it happens in certain month. Use
             # average for that estimate
-            else: 
+            else:
                 total += estimate.amount / 12
         return total
 
@@ -60,8 +61,9 @@ class Budget(StandardMetadata):
     def yearly_estimated_total(self):
         return self.monthly_estimated_total() * 12
 
-    def categories_estimates_and_transactions(self, start_date, end_date, 
-                                   categories, occurrence_query_list = Q()):
+    def categories_estimates_and_transactions(self, start_date, end_date,
+                                              categories,
+                                              occurrence_query_list=Q()):
 
         categories_estimates_and_transactions = []
 
@@ -71,7 +73,7 @@ class Budget(StandardMetadata):
             estimate_found = False
 
             # Search for each category, and where occurence match
-            query_list = (Q(category=category)  & occurrence_query_list)
+            query_list = (Q(category=category) & occurrence_query_list)
 
             for estimate in self.estimates.filter(query_list).exclude(is_deleted=True):
                 estimate_found = True
@@ -80,7 +82,8 @@ class Budget(StandardMetadata):
                 categories_estimates_and_transactions.append({
                     'category': category,
                     'estimate': estimate,
-                    'transactions': estimate.actual_transactions(start_date, end_date),
+                    'transactions': estimate.actual_transactions(start_date,
+                                                                 end_date),
                     'actual_amount': actual_amount,
                 })
             if not estimate_found:
@@ -101,16 +104,14 @@ class Budget(StandardMetadata):
 
         cat_query: Q() object containing wanted category 'category=<wanted_cat'
         """
-        
+
         return (self.estimates.filter(cat_query).exclude(is_deleted=True))
 
     def actuals(self, start_date, end_date, estimate):
         """
-        
+
         """
         estimates_and_actuals = []
-        actual_total = Decimal('0.0')
-        estimate_found = False
         actual_amount = None
         actual_amount = estimate.actual_amount(start_date, end_date)
         estimates_and_actuals.append({
@@ -118,11 +119,10 @@ class Budget(StandardMetadata):
             'actual_amount': actual_amount,
         })
 
-
-    def estimates_and_actuals(self, start_date, end_date, 
-                              cat_query, occurrence_query_list = Q()):
+    def estimates_and_actuals(self, start_date, end_date,
+                              cat_query, occurrence_query_list=Q()):
         # Search for each category, and where occurence match
-        query_list = (cat_query  & occurrence_query_list)
+        query_list = (cat_query & occurrence_query_list)
         estimates_and_actuals = []
         actual_total = Decimal('0.0')
         estimate_found = False
@@ -133,9 +133,9 @@ class Budget(StandardMetadata):
             actual_amount = estimate.actual_amount(start_date, end_date)
             actual_total += actual_amount
             estimates_and_actuals.append({
-                    'estimate': estimate,
-                    'actual_amount': actual_amount,
-                })
+                'estimate': estimate,
+                'actual_amount': actual_amount,
+            })
         if not estimate_found:
             # Set estimate and transactions to empty query set if no
             # estimate found
@@ -146,14 +146,13 @@ class Budget(StandardMetadata):
 
         return (estimates_and_actuals, actual_total)
 
-
     def actual_total(self, start_date, end_date):
         actual_total = Decimal('0.0')
 
         for estimate in self.estimates.exclude(is_deleted=True):
             actual_amount = estimate.actual_amount(start_date, end_date)
             actual_total += actual_amount
-        
+
         return actual_total
 
     def categories_yearly_estimates_and_actuals(self, categories, budget, year):
@@ -170,55 +169,66 @@ class Budget(StandardMetadata):
         actual_yearly_total = Decimal(0.0)
 
         for category in categories:
-            # Total used in month per category
-            actual_yearly_total_in_category = Decimal(0.0)
-            estimated_yearly_total_in_category = Decimal(0.0)
+            # Total used in year per category
+            actual_yearly_total_in_cat = {}
+            actual_monthly_total = {}
+            actual_monthly_total[category] = Decimal(0.0)
+            estimated_yearly_total = {}
+            estimated_yearly_total[category] = Decimal(0.0)
+            actual_monthly_total[category] = Decimal(0.0)
+            actual_yearly_total_in_cat[category] = Decimal(0.0)
 
             monthly_data_per_category = []
+            monthly_data_per_category.append(category)
+            monthly_data = []
 
             category_query = Q(category=category)
             estimates = budget.category_estimates(category_query)
-            for estimate in estimates:
-                #pprint.pprint(estimate)
-                monthly_data=[]
-                monthly_data_per_category = []
+            for month_number, month_name in enumerate(calendar.month_name):
+                #
 
-                actual_spent_amount_in_month = None
+                actual_monthly_total[category] = Decimal(0.0)
 
-                estimated_yearly_amount = estimate.yearly_estimated_amount()
-                estimated_yearly_total_in_category += estimated_yearly_amount
-                monthly_data_per_category.append(category)
-                for month_number, month_name in enumerate(calendar.month_name):
+                # month number 0 is empty string
+                if month_number == 0:
+                    continue
 
-                    actual_monthly_total_in_category = Decimal(0.0)
+                start_date = datetime.date(int(year), month_number, 1)
+                end_date = datetime.date(int(year),
+                                         month_number,
+                                         calendar.monthrange(int(year),
+                                                             month_number)[1])
+                for estimate in estimates:
 
-                    # month number 0 is empty string
-                    if month_number == 0:
-                        continue
+                    estimated_yearly_amount = estimate.yearly_estimated_amount()
 
-                    start_date = datetime.date(int(year), month_number, 1)
-                    end_date = datetime.date(int(year),
-                                             month_number,
-                                             calendar.monthrange(int(year),
-                                                                 month_number)[1])
-                    actual_monthly_total_in_category = estimate.actual_amount(start_date, end_date)
+                    estimated_yearly_total[category] += estimated_yearly_amount / Decimal(12)
+
+                    # estimate.actual_amount return all transaction for the
+                    # category
+                    # Even if there's multiple estimates for the same
+                    # category, actual_amount needs to be calculated only once
+                    if actual_monthly_total[category] == Decimal(0.0):
+                        actual_monthly_total[category] = estimate.actual_amount(start_date, end_date)
 
                     # Get estimates and actuals for the date range
-                    #eaa, actual_monthly_total_cat = budget.estimates_and_actuals(start_date, end_date, category_query, Q())
-                    actual_yearly_total_in_category += actual_monthly_total_in_category
-                    monthly_data.append({
-                        'actual_monthly_total_in_category': actual_monthly_total_in_category,
-                    })
+                    # eaa, actual_monthly_total_cat =
+                    # budget.estimates_and_actuals(start_date, end_date,
+                    # category_query, Q())
+                actual_yearly_total_in_cat[category] += actual_monthly_total[category]
+                monthly_data.append({
+                    'actual_monthly_total_in_category': actual_monthly_total[category],
+                })
 
-                actual_yearly_total += actual_yearly_total_in_category
+            actual_yearly_total += actual_yearly_total_in_cat[category]
 
-                monthly_data_per_category.append(monthly_data)
+            monthly_data_per_category.append(monthly_data)
 
-                # Total per category within year
-                monthly_data_per_category.append(actual_yearly_total_in_category)
-                monthly_data_per_category.append(estimated_yearly_total_in_category)
-                # Store monthly data for current category
-                estimates_and_actuals.append(monthly_data_per_category)
+            # Total per category within year
+            monthly_data_per_category.append(actual_yearly_total_in_cat[category])
+            monthly_data_per_category.append(estimated_yearly_total[category])
+            # Store monthly data for current category
+            estimates_and_actuals.append(monthly_data_per_category)
 
         return (estimates_and_actuals, actual_yearly_total)
 
@@ -226,12 +236,13 @@ class Budget(StandardMetadata):
         verbose_name = _('Budget')
         verbose_name_plural = _('Budgets')
 
+
 class BudgetEstimate(StandardMetadata):
     """
     The individual line items that make up a budget.
 
-    Some examples include possible items like "Mortgage", "Rent", "Food", "Misc"
-    and "Car Payment".
+    Some examples include possible items like "Mortgage", "Rent", "Food",
+    "Misc" and "Car Payment".
     """
 
     REPEAT_CHOICES = (
@@ -288,7 +299,7 @@ class BudgetEstimate(StandardMetadata):
             return self.amount
 
     def actual_transactions(self, start_date, end_date):
-        # Estimates should only report on expenses to prevent incomes from 
+        # Estimates should only report on expenses to prevent incomes from
         # (incorrectly) artificially inflating totals.
         return Transaction.expenses.filter(category=self.category, date__range=(start_date, end_date)).order_by('date')
 
@@ -297,7 +308,7 @@ class BudgetEstimate(StandardMetadata):
         for transaction in self.actual_transactions(start_date, end_date):
             total += transaction.amount
         return total
-        
+
     class Meta:
         verbose_name = _('Budget estimate')
         verbose_name_plural = _('Budget estimates')

@@ -63,7 +63,10 @@ class BudgetModelTest(TestCase):
         root_nodes = Category.root_nodes.all()
         categories = get_queryset_descendants(root_nodes, include_self=True)
 
-        cat_est_trans, actual_total = budget.categories_estimates_and_transactions(start_date, end_date, categories)
+        cat_est_trans, actual_total = (
+            budget.categories_estimates_and_transactions(
+                start_date, end_date, categories)
+        )
         self.assertEqual(total_transactions, actual_total,
                          'Total amount does not match')
 

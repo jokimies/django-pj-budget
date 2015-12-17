@@ -1,7 +1,5 @@
 import datetime
 import calendar
-from decimal import Decimal
-import operator
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -17,7 +15,10 @@ from budget.categories.models import Category, get_queryset_descendants
 from budget.transactions.models import Transaction
 from budget.forms import BudgetEstimateForm, BudgetForm
 
-def dashboard(request, budget_model_class=Budget, transaction_model_class=Transaction, template_name='budget/dashboard.html'):
+
+def dashboard(request, budget_model_class=Budget,
+              transaction_model_class=Transaction,
+              template_name='budget/dashboard.html'):
     """
     Provides a high-level rundown of recent activity and budget status.
 
@@ -85,17 +86,20 @@ def setup(request, template_name='budget/setup.html'):
 
     Templates: ``budget/setup.html``
     """
-    return render_to_response(template_name, {}, context_instance=RequestContext(request))
+    return render_to_response(template_name, {},
+                              context_instance=RequestContext(request))
 
 
-def summary_list(request, transaction_model_class=Transaction, template_name='budget/summaries/summary_list.html'):
+def summary_list(request, transaction_model_class=Transaction,
+                 template_name='budget/summaries/summary_list.html'):
     """
     Displays a list of all months that may have transactions for that month.
 
     Templates: ``budget/summaries/summary_list.html``
     Context:
         dates
-            a list of datetime objects representing all years/months that have transactions
+            a list of datetime objects representing all years/months that
+            have transactions
     """
     dates = transaction_model_class.active.all().dates('date', 'month')
     return render_to_response(template_name, {
@@ -103,7 +107,7 @@ def summary_list(request, transaction_model_class=Transaction, template_name='bu
     }, context_instance=RequestContext(request))
 
 
-def summary_year_no_months(request, year, budget_model_class=Budget, 
+def summary_year_no_months(request, year, budget_model_class=Budget,
                            template_name='budget/summaries/summary_year.html'):
     """
     Displays a budget report for the year to date.
@@ -113,9 +117,11 @@ def summary_year_no_months(request, year, budget_model_class=Budget,
         budget
             the most current budget object for the year
         estimates_and_transactions
-            a list of dictionaries containing each budget estimate, the corresponding transactions and total amount of the transactions
+            a list of dictionaries containing each budget estimate, the
+            corresponding transactions and total amount of the transactions
         actual_total
-            the total amount of all transactions represented in the budget for the year
+            the total amount of all transactions represented in the budget
+            for the year
         start_date
             the first date for the year
         end_date
@@ -136,7 +142,9 @@ def summary_year_no_months(request, year, budget_model_class=Budget,
         'year': year,
     }, context_instance=RequestContext(request))
 
-def summary_year_detail(request, year, budget_model_class=Budget, template_name='budget/summaries/summary_year_months.html'):
+
+def summary_year_detail(request, year, budget_model_class=Budget,
+                        template_name='budget/summaries/summary_year_months.html'):
     """
     Displays a budget report for the year to date, month by month
 
@@ -145,9 +153,11 @@ def summary_year_detail(request, year, budget_model_class=Budget, template_name=
         budget
             the most current budget object for the year
         estimates_and_transactions
-            a list of dictionaries containing each budget estimate, the corresponding transactions and total amount of the transactions
+            a list of dictionaries containing each budget estimate, the
+            corresponding transactions and total amount of the transactions
         actual_total
-            the total amount of all transactions represented in the budget for the year
+            the total amount of all transactions represented in the budget
+            for the year
         start_date
             the first date for the year
         end_date
@@ -161,7 +171,7 @@ def summary_year_detail(request, year, budget_model_class=Budget, template_name=
     yearly_data = budget.yearly_data_per_category(categories, budget,
                                                   year)
     return render_to_response(template_name, {
-        'months' : calendar.month_abbr[1:],
+        'months': calendar.month_abbr[1:],
         'categories': categories,
         'budget': budget,
         'estimates_and_actuals': yearly_data.estimates_and_actuals,
@@ -170,7 +180,8 @@ def summary_year_detail(request, year, budget_model_class=Budget, template_name=
     }, context_instance=RequestContext(request))
 
 
-def summary_month(request, year, month, budget_model_class=Budget, template_name='budget/summaries/summary_month.html'):
+def summary_month(request, year, month, budget_model_class=Budget,
+                  template_name='budget/summaries/summary_month.html'):
     """
     Displays a budget report for the month to date.
 
@@ -179,9 +190,11 @@ def summary_month(request, year, month, budget_model_class=Budget, template_name
         budget
             the most current budget object for the month
         estimates_and_transactions
-            a list of dictionaries containing each budget estimate, the corresponding transactions and total amount of the transactions
+            a list of dictionaries containing each budget estimate, the
+            corresponding transactions and total amount of the transactions
         actual_total
-            the total amount of all transactions represented in the budget for the month
+            the total amount of all transactions represented in the budget
+            for the month
         start_date
             the first date for the month
         end_date
@@ -217,7 +230,8 @@ def summary_month(request, year, month, budget_model_class=Budget, template_name
     }, context_instance=RequestContext(request))
 
 
-def budget_list(request, model_class=Budget, template_name='budget/budgets/list.html'):
+def budget_list(request, model_class=Budget,
+                template_name='budget/budgets/list.html'):
     """
     A list of budget objects.
 
@@ -232,7 +246,8 @@ def budget_list(request, model_class=Budget, template_name='budget/budgets/list.
     """
     budgets_list = model_class.active.all()
     try:
-        paginator = Paginator(budgets_list, getattr(settings, 'BUDGET_LIST_PER_PAGE', 50))
+        paginator = Paginator(budgets_list,
+                              getattr(settings, 'BUDGET_LIST_PER_PAGE', 50))
         page = paginator.page(request.GET.get('page', 1))
         budgets = page.object_list
     except InvalidPage:
@@ -244,7 +259,8 @@ def budget_list(request, model_class=Budget, template_name='budget/budgets/list.
     }, context_instance=RequestContext(request))
 
 
-def budget_add(request, form_class=BudgetForm, template_name='budget/budgets/add.html'):
+def budget_add(request, form_class=BudgetForm,
+               template_name='budget/budgets/add.html'):
     """
     Create a new budget object.
 
@@ -257,7 +273,7 @@ def budget_add(request, form_class=BudgetForm, template_name='budget/budgets/add
         form = form_class(request.POST)
 
         if form.is_valid():
-            budget = form.save()
+            form.save()
             return HttpResponseRedirect(reverse('budget_budget_list'))
     else:
         form = form_class()
@@ -266,7 +282,8 @@ def budget_add(request, form_class=BudgetForm, template_name='budget/budgets/add
     }, context_instance=RequestContext(request))
 
 
-def budget_edit(request, slug, model_class=Budget, form_class=BudgetForm, template_name='budget/budgets/edit.html'):
+def budget_edit(request, slug, model_class=Budget, form_class=BudgetForm,
+                template_name='budget/budgets/edit.html'):
     """
     Edit a budget object.
 
@@ -282,7 +299,7 @@ def budget_edit(request, slug, model_class=Budget, form_class=BudgetForm, templa
         form = form_class(request.POST, instance=budget)
 
         if form.is_valid():
-            category = form.save()
+            form.save()
             return HttpResponseRedirect(reverse('budget_budget_list'))
     else:
         form = form_class(instance=budget)
@@ -292,7 +309,8 @@ def budget_edit(request, slug, model_class=Budget, form_class=BudgetForm, templa
     }, context_instance=RequestContext(request))
 
 
-def budget_delete(request, slug, model_class=Budget, template_name='budget/budgets/delete.html'):
+def budget_delete(request, slug, model_class=Budget,
+                  template_name='budget/budgets/delete.html'):
     """
     Delete a budget object.
 
@@ -311,7 +329,9 @@ def budget_delete(request, slug, model_class=Budget, template_name='budget/budge
     }, context_instance=RequestContext(request))
 
 
-def estimate_list(request, budget_slug, budget_model_class=Budget, model_class=BudgetEstimate, template_name='budget/estimates/list.html'):
+def estimate_list(request, budget_slug, budget_model_class=Budget,
+                  model_class=BudgetEstimate,
+                  template_name='budget/estimates/list.html'):
     """
     A list of estimate objects.
 
@@ -326,10 +346,12 @@ def estimate_list(request, budget_slug, budget_model_class=Budget, model_class=B
         page
             current page of estimate objects
     """
-    budget = get_object_or_404(budget_model_class.active.all(), slug=budget_slug)
+    budget = get_object_or_404(budget_model_class.active.all(),
+                               slug=budget_slug)
     estimates_list = model_class.active.filter(budget__id=budget.id).all()
     try:
-        paginator = Paginator(estimates_list, getattr(settings, 'BUDGET_LIST_PER_PAGE', 50))
+        paginator = Paginator(estimates_list,
+                              getattr(settings, 'BUDGET_LIST_PER_PAGE', 50))
         page = paginator.page(request.GET.get('page', 1))
         estimates = page.object_list
     except InvalidPage:
@@ -342,7 +364,9 @@ def estimate_list(request, budget_slug, budget_model_class=Budget, model_class=B
     }, context_instance=RequestContext(request))
 
 
-def estimate_add(request, budget_slug, budget_model_class=Budget, form_class=BudgetEstimateForm, template_name='budget/estimates/add.html'):
+def estimate_add(request, budget_slug, budget_model_class=Budget,
+                 form_class=BudgetEstimateForm,
+                 template_name='budget/estimates/add.html'):
     """
     Create a new estimate object.
 
@@ -353,13 +377,17 @@ def estimate_add(request, budget_slug, budget_model_class=Budget, form_class=Bud
         form
             a estimate form
     """
-    budget = get_object_or_404(budget_model_class.active.all(), slug=budget_slug)
+    budget = get_object_or_404(budget_model_class.active.all(),
+                               slug=budget_slug)
     if request.POST:
         form = form_class(request.POST)
 
         if form.is_valid():
-            estimate = form.save(budget=budget)
-            return HttpResponseRedirect(reverse('budget_estimate_list', kwargs={'budget_slug': budget.slug}))
+            form.save(budget=budget)
+            return HttpResponseRedirect(
+                reverse('budget_estimate_list',
+                        kwargs={'budget_slug': budget.slug})
+            )
     else:
         form = form_class()
     return render_to_response(template_name, {
@@ -368,7 +396,10 @@ def estimate_add(request, budget_slug, budget_model_class=Budget, form_class=Bud
     }, context_instance=RequestContext(request))
 
 
-def estimate_edit(request, budget_slug, estimate_id, budget_model_class=Budget, form_class=BudgetEstimateForm, template_name='budget/estimates/edit.html'):
+def estimate_edit(request, budget_slug, estimate_id,
+                  budget_model_class=Budget,
+                  form_class=BudgetEstimateForm,
+                  template_name='budget/estimates/edit.html'):
     """
     Edit a estimate object.
 
@@ -381,7 +412,8 @@ def estimate_edit(request, budget_slug, estimate_id, budget_model_class=Budget, 
         form
             a estimate form
     """
-    budget = get_object_or_404(budget_model_class.active.all(), slug=budget_slug)
+    budget = get_object_or_404(budget_model_class.active.all(),
+                               slug=budget_slug)
     try:
         estimate = budget.estimates.get(pk=estimate_id, is_deleted=False)
     except ObjectDoesNotExist:
@@ -390,8 +422,11 @@ def estimate_edit(request, budget_slug, estimate_id, budget_model_class=Budget, 
         form = form_class(request.POST, instance=estimate)
 
         if form.is_valid():
-            category = form.save(budget=budget)
-            return HttpResponseRedirect(reverse('budget_estimate_list', kwargs={'budget_slug': budget.slug}))
+            form.save(budget=budget)
+            return HttpResponseRedirect(
+                reverse('budget_estimate_list',
+                        kwargs={'budget_slug': budget.slug})
+            )
     else:
         form = form_class(instance=estimate)
     return render_to_response(template_name, {
@@ -401,7 +436,9 @@ def estimate_edit(request, budget_slug, estimate_id, budget_model_class=Budget, 
     }, context_instance=RequestContext(request))
 
 
-def estimate_delete(request, budget_slug, estimate_id, budget_model_class=Budget, template_name='budget/estimates/delete.html'):
+def estimate_delete(request, budget_slug, estimate_id,
+                    budget_model_class=Budget,
+                    template_name='budget/estimates/delete.html'):
     """
     Delete a estimate object.
 
@@ -412,7 +449,8 @@ def estimate_delete(request, budget_slug, estimate_id, budget_model_class=Budget
         estimate
             the existing estimate object
     """
-    budget = get_object_or_404(budget_model_class.active.all(), slug=budget_slug)
+    budget = get_object_or_404(budget_model_class.active.all(),
+                               slug=budget_slug)
     try:
         estimate = budget.estimates.get(pk=estimate_id, is_deleted=False)
     except ObjectDoesNotExist:
@@ -420,7 +458,10 @@ def estimate_delete(request, budget_slug, estimate_id, budget_model_class=Budget
     if request.POST:
         if request.POST.get('confirmed'):
             estimate.delete()
-        return HttpResponseRedirect(reverse('budget_estimate_list', kwargs={'budget_slug': budget.slug}))
+        return HttpResponseRedirect(
+            reverse('budget_estimate_list',
+                    kwargs={'budget_slug': budget.slug})
+        )
     return render_to_response(template_name, {
         'budget': budget,
         'estimate': estimate,

@@ -33,11 +33,11 @@
 			    </td>
 			{% for data in monthly_data %}
 			    <td class="numeric">
-				{{ data.actual_monthly_total_in_category  }}
+				{{ data.actual_monthly_total_in_category|stringformat:".02f" }}
 			    </td>
 			{% endfor %}
 			<td class="numeric">
-			    {{ estimated_yearly_total_cat }}
+			    {{ estimated_yearly_total_cat|stringformat:".02f" }}
 			</td>
 			<td class="numeric">
 			    {{ yearly_actual_total_cat }}

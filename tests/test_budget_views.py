@@ -92,9 +92,9 @@ class BudgetYearlySummaryTest(TestCase):
         root_nodes = Category.root_nodes.all()
         self.categories = get_queryset_descendants(root_nodes, 
                                                    include_self=True)
-        yearly_things = self.budget.categories_yearly_estimates_and_actuals(self.categories,
-                                                                       self.budget, 
-                                                                       self.year)
+        yearly_things = self.budget.yearly_data_per_category(self.categories,
+                                                             self.budget, 
+                                                             self.year)
         self.estimates_and_actuals, self.actual_yearly_total = yearly_things
 
     def test_yearly_summary_without_months_returns_correct_page(self):

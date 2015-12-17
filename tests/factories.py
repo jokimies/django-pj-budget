@@ -1,5 +1,6 @@
 import datetime
 from decimal import Decimal
+from collections import namedtuple
 
 # 3rd party
 import factory
@@ -50,6 +51,12 @@ class TransactionFactory(factory.django.DjangoModelFactory):
     category = factory.SubFactory(CategoryFactory)
 
 def yearly_estimates_and_actuals():
+
+    ActualYearlyData = namedtuple('ActualYearlyData',
+                                  ['total_transactions',
+                                   'total_groceries',
+                                   'groceries_estimate',])
+
     amount_groceries1 = Decimal('68.30')
     amount_groceries2 = Decimal('34.39')
     amount_loan = Decimal('800.0')
@@ -89,9 +96,11 @@ def yearly_estimates_and_actuals():
     categories = get_queryset_descendants(root_nodes, include_self=True)
     
     year = "2008"
-    yearly_things = budget.categories_yearly_estimates_and_actuals(categories,
-                                                           budget, year)
+    yearly_calculated_data = budget.yearly_data_per_category(categories,
+                                                             budget, year)
 
-    # Return yearly things and toral_transcations
-    return yearly_things + (total_transactions, 
-                           total_groceries, groceries_estimate)
+    actual_groceries= ActualYearlyData(total_transactions=total_transactions,
+                                       total_groceries=total_groceries,
+                                       groceries_estimate=groceries_estimate)
+        # Return yearly things and toral_transcations
+    return yearly_calculated_data, actual_groceries

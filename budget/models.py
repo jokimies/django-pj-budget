@@ -1,6 +1,7 @@
 import datetime
 from decimal import Decimal
 import calendar
+from collections import namedtuple
 
 from django.db import models
 from django.db.models import Q
@@ -75,7 +76,7 @@ class Budget(StandardMetadata):
             # Search for each category, and where occurence match
             query_list = (Q(category=category) & occurrence_query_list)
 
-            for estimate in self.estimates.filter(query_list).exclude(is_deleted=True):
+            for estimate in self.category_estimates(query_list):
                 estimate_found = True
                 actual_amount = estimate.actual_amount(start_date, end_date)
                 actual_total += actual_amount
@@ -128,7 +129,7 @@ class Budget(StandardMetadata):
         estimate_found = False
         actual_amount = None
 
-        for estimate in self.estimates.filter(query_list).exclude(is_deleted=True):
+        for estimate in self.category_estimates(query_list):
             estimate_found = True
             actual_amount = estimate.actual_amount(start_date, end_date)
             actual_total += actual_amount
@@ -155,7 +156,7 @@ class Budget(StandardMetadata):
 
         return actual_total
 
-    def categories_yearly_estimates_and_actuals(self, categories, budget, year):
+    def yearly_data_per_category(self, categories, budget, year):
         """
         :param budget.categories.Category categories: Category list
         :param budget.Budget budget: Budget to work on
@@ -167,6 +168,10 @@ class Budget(StandardMetadata):
 
         # Total amount of money used in a year
         actual_yearly_total = Decimal(0.0)
+
+        YearlyData = namedtuple('YearlyData',
+                                ['estimates_and_actuals',
+                                 'actual_yearly_total'])
 
         for category in categories:
             # Total used in year per category
@@ -202,6 +207,8 @@ class Budget(StandardMetadata):
 
                     estimated_yearly_amount = estimate.yearly_estimated_amount()
 
+                    # Need refactoring, a better way to get monthly
+                    # estimates for a category than just divide by 12
                     estimated_yearly_total[category] += estimated_yearly_amount / Decimal(12)
 
                     # estimate.actual_amount return all transaction for the
@@ -230,7 +237,8 @@ class Budget(StandardMetadata):
             # Store monthly data for current category
             estimates_and_actuals.append(monthly_data_per_category)
 
-        return (estimates_and_actuals, actual_yearly_total)
+        return YearlyData(estimates_and_actuals=estimates_and_actuals,
+                          actual_yearly_total=actual_yearly_total)
 
     class Meta:
         verbose_name = _('Budget')
@@ -278,11 +286,17 @@ class BudgetEstimate(StandardMetadata):
         (DECEMBER, _('December')),
     )
 
-    budget = models.ForeignKey(Budget, related_name='estimates', verbose_name=_('Budget'))
-    category = models.ForeignKey(Category, related_name='estimates', verbose_name=_('Category'))
+    budget = models.ForeignKey(Budget, related_name='estimates',
+                               verbose_name=_('Budget'))
+    category = models.ForeignKey(Category, related_name='estimates',
+                                 verbose_name=_('Category'))
     amount = models.DecimalField(_('Amount'), max_digits=11, decimal_places=2)
-    repeat = models.CharField(_('Repeat'), max_length=15, choices=REPEAT_CHOICES, blank=True)
-    occurring_month = models.IntegerField(_('Occuring month'), null=True, blank=True, choices=MONTH_CHOICES)
+    repeat = models.CharField(_('Repeat'), max_length=15,
+                              choices=REPEAT_CHOICES,
+                              blank=True)
+    occurring_month = models.IntegerField(_('Occuring month'),
+                                          null=True, blank=True,
+                                          choices=MONTH_CHOICES)
 
     objects = models.Manager()
     active = ActiveManager()

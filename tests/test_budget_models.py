@@ -6,9 +6,12 @@ from django.test import TestCase
 
 # Own
 from budget.categories.models import Category, get_queryset_descendants
+from budget.models import Budget
 
 from .utils import *
-from .factories import *
+from .factories import (BudgetFactory, BudgetEstimateFactory,
+                        CategoryFactory, TransactionFactory,
+                        yearly_estimates_and_actuals,)
 
 
 class BudgetModelTest(TestCase):
@@ -69,21 +72,22 @@ class BudgetModelTest(TestCase):
         Test if total spent in a year is calculated correctly
         """
 
-        estimates_and_actuals, actual_yearly_total, total_transactions, total_groceries, groceries_estimate = yearly_estimates_and_actuals()
-
-        self.assertEqual(total_transactions, actual_yearly_total,
+        calculated_data, real_data = yearly_estimates_and_actuals()
+        self.assertEqual(real_data.total_transactions,
+                         calculated_data.actual_yearly_total,
                          'Total amount does not match')
 
     def test_yearly_actual_per_category_is_calculated_correctly(self):
         """
         Tests if the yearly sum for certain category is calculated correctly
         """
-        estimates_and_actuals, actual_yearly_total, total_transactions, total_groceries, estimates_groceries = yearly_estimates_and_actuals()
+        calculated_data, real_data = yearly_estimates_and_actuals()
 
         # Total for a category is stored into 3rd item of the category array
 
         # Not very flexible to use fixed indexes, but enough for now
-        self.assertEqual(estimates_and_actuals[1][2], total_groceries,
+        self.assertEqual(calculated_data.estimates_and_actuals[1][2],
+                         real_data.total_groceries,
                          'Total amount does not match')
 
     def test_yearly_estimated_per_category_is_calculated_correctly(self):
@@ -91,13 +95,12 @@ class BudgetModelTest(TestCase):
         Tests if the yearly estimate for certain category is correct.
         There might be multiple estimates for the same category
         """
-        estimates_and_actuals, actual_yearly_total, total_transactions, total_groceries, estimates_groceries = yearly_estimates_and_actuals()
-
+        calculated_data, real_data = yearly_estimates_and_actuals()
         # Estimation for a category is stored into 4th item of the category
         # array
         # Not very flexible to use fixed indexes, but enough for now
-        self.assertAlmostEqual(estimates_and_actuals[1][3],
-                               estimates_groceries,
+        self.assertAlmostEqual(calculated_data.estimates_and_actuals[1][3],
+                               real_data.groceries_estimate,
                                msg='Estimation does not match')
 
 

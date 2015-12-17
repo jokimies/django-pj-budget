@@ -158,15 +158,14 @@ def summary_year_detail(request, year, budget_model_class=Budget, template_name=
     root_nodes = Category.root_nodes.all()
     categories = get_queryset_descendants(root_nodes, include_self=True)
     budget = budget_model_class.active.most_current_for_date(year_end_date)
-    estimates_and_actuals, actual_yearly_total = budget.categories_yearly_estimates_and_actuals(categories,
-                                                               budget, year)
-
+    yearly_data = budget.yearly_data_per_category(categories, budget,
+                                                  year)
     return render_to_response(template_name, {
         'months' : calendar.month_abbr[1:],
         'categories': categories,
         'budget': budget,
-        'estimates_and_actuals': estimates_and_actuals,
-        'actual_yearly_total': actual_yearly_total,
+        'estimates_and_actuals': yearly_data.estimates_and_actuals,
+        'actual_yearly_total': yearly_data.actual_yearly_total,
         'year': year,
     }, context_instance=RequestContext(request))
 

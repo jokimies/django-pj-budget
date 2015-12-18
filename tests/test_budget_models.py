@@ -77,7 +77,7 @@ class BudgetModelTest(TestCase):
 
         calculated_data, real_data = yearly_estimates_and_actuals()
         self.assertEqual(real_data.total_transactions,
-                         calculated_data.actual_yearly_total,
+                         calculated_data.calculated_data.actual_yearly_total,
                          'Total amount does not match')
 
     def test_yearly_actual_per_category_is_calculated_correctly(self):
@@ -89,7 +89,7 @@ class BudgetModelTest(TestCase):
         # Total for a category is stored into 3rd item of the category array
 
         # Not very flexible to use fixed indexes, but enough for now
-        self.assertEqual(calculated_data.estimates_and_actuals[1][2],
+        self.assertEqual(calculated_data.calculated_data.estimates_and_actuals[1][2],
                          real_data.total_groceries,
                          'Total amount does not match')
 
@@ -102,8 +102,15 @@ class BudgetModelTest(TestCase):
         # Estimation for a category is stored into 4th item of the category
         # array
         # Not very flexible to use fixed indexes, but enough for now
-        self.assertAlmostEqual(calculated_data.estimates_and_actuals[1][3],
+        self.assertAlmostEqual(calculated_data.calculated_data.estimates_and_actuals[1][3],
                                real_data.groceries_estimate,
+                               msg='Estimation does not match')
+
+    def test_yearly_estimated_total_is_calculated_correctly(self):
+
+        calculated_data, real_data = yearly_estimates_and_actuals()
+        self.assertAlmostEqual(calculated_data.calculated_estimation,
+                               real_data.yearly_estimated_total,
                                msg='Estimation does not match')
 
 

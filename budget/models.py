@@ -6,6 +6,7 @@ from collections import namedtuple
 from django.db import models
 from django.db.models import Q
 
+from multiselectfield import MultiSelectField
 
 from budget.base_models import ActiveManager, StandardMetadata
 from budget.categories.models import Category
@@ -37,15 +38,15 @@ class Budget(StandardMetadata):
     def __unicode__(self):
         return self.name
 
-    def monthly_estimated_total(self):
+    def yearly_estimated_total(self):
+        """
+        Sum of estimates for the current budget
+        Budget is assumed to cover entire year
+        """
         total = Decimal('0.0')
         for estimate in self.estimates.exclude(is_deleted=True):
-            if estimate.repeat == 'MONTHLY':
+            for month in estimate.occurring_month:
                 total += estimate.amount
-            # If estimate is not monthly, it happens in certain month. Use
-            # average for that estimate
-            else:
-                total += estimate.amount / 12
         return total
 
     def monthly_estimated_total_current_month(self, month):
@@ -58,9 +59,6 @@ class Budget(StandardMetadata):
             elif estimate.occurring_month == month:
                 total += estimate.amount
         return total
-
-    def yearly_estimated_total(self):
-        return self.monthly_estimated_total() * 12
 
     def categories_estimates_and_transactions(self, start_date, end_date,
                                               categories,
@@ -291,12 +289,10 @@ class BudgetEstimate(StandardMetadata):
     category = models.ForeignKey(Category, related_name='estimates',
                                  verbose_name=_('Category'))
     amount = models.DecimalField(_('Amount'), max_digits=11, decimal_places=2)
-    repeat = models.CharField(_('Repeat'), max_length=15,
-                              choices=REPEAT_CHOICES,
-                              blank=True)
-    occurring_month = models.IntegerField(_('Occuring month'),
-                                          null=True, blank=True,
-                                          choices=MONTH_CHOICES)
+    occurring_month = MultiSelectField(_('Occuring month'),
+                                       null=False, blank=False,
+                                       choices=MONTH_CHOICES,
+                                       default=u'1')
 
     objects = models.Manager()
     active = ActiveManager()
@@ -305,12 +301,12 @@ class BudgetEstimate(StandardMetadata):
         return u"%s - %s" % (self.category.name, self.amount)
 
     def yearly_estimated_amount(self):
-        if self.repeat == 'MONTHLY':
-            return self.amount * 12
-        else:
-            # payment is estimated to happen only  in certain
-            # month, use that value
-            return self.amount
+
+        yearly_estimate = Decimal(0.0)
+        for month in self.occurring_month:
+            yearly_estimate += self.amount
+
+        return yearly_estimate
 
     def actual_transactions(self, start_date, end_date):
         # Estimates should only report on expenses to prevent incomes from

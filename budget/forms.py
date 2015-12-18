@@ -33,7 +33,7 @@ class BudgetEstimateForm(forms.ModelForm):
 
     class Meta:
         model = BudgetEstimate
-        fields = ('category', 'amount', 'repeat', 'occurring_month')
+        fields = ('category', 'amount', 'occurring_month')
     
     def save(self, budget):
         self.instance.budget = budget

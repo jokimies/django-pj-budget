@@ -55,17 +55,29 @@ def yearly_estimates_and_actuals():
     ActualYearlyData = namedtuple('ActualYearlyData',
                                   ['total_transactions',
                                    'total_groceries',
-                                   'groceries_estimate',])
+                                   'groceries_estimate',
+                                   'yearly_estimated_total',])
+
+    CalculatedYearlyData = namedtuple('CalculatedYearlyData',
+                                      ['calculated_data',
+                                       'calculated_estimation',])
 
     amount_groceries1 = Decimal('68.30')
     amount_groceries2 = Decimal('34.39')
     amount_loan = Decimal('800.0')
     total_groceries = amount_groceries1 + amount_groceries2
     total_transactions = total_groceries + amount_loan
-    groceries_estimate = Decimal('800.0')
+    groceries_monthly_estimate = Decimal('800.0')
+    groceries_yearly_estimate =  groceries_monthly_estimate * 12
+    loan_monthly_estimate = Decimal('900.0')
+    loan_yearly_estimate = loan_monthly_estimate * 12
+    yearly_estimated_total = groceries_yearly_estimate + loan_yearly_estimate
+
     #Setup and crate needed budgets, estimates, etc.
     budget = BudgetFactory(start_date=datetime.datetime(2008, 1, 1))
     cat_food = CategoryFactory(name='Food')
+    entire_year = '1,2,3,4,5,6,7,8,9,10,11,12'
+
     cat_groceries = CategoryFactory(name='Groceries',
                                     parent=cat_food,
                                 )
@@ -73,14 +85,15 @@ def yearly_estimates_and_actuals():
     cat_mortgage = CategoryFactory(name='Mortgage',
                                    parent=cat_loan,
                                )
-    est_loan = BudgetEstimateFactory(amount=Decimal('9600.0'),
+    est_loan = BudgetEstimateFactory(amount=loan_monthly_estimate,
                                      budget=budget,
                                      category=cat_mortgage,
-    )
-    est_groceries = BudgetEstimateFactory(amount=groceries_estimate,
+                                     occurring_month=entire_year,)
+
+    est_groceries = BudgetEstimateFactory(amount=groceries_monthly_estimate,
                                           budget=budget,
                                           category=cat_groceries,
-                                      )
+                                          occurring_month=entire_year,)
     
     trans_groceries1 = TransactionFactory(amount=amount_groceries1, 
                                           category=cat_groceries, 
@@ -99,8 +112,16 @@ def yearly_estimates_and_actuals():
     yearly_calculated_data = budget.yearly_data_per_category(categories,
                                                              budget, year)
 
-    actual_groceries= ActualYearlyData(total_transactions=total_transactions,
+    yearly_calculated_estimation = budget.yearly_estimated_total()
+
+    actual_data = ActualYearlyData(total_transactions=total_transactions,
                                        total_groceries=total_groceries,
-                                       groceries_estimate=groceries_estimate)
+                                       groceries_estimate=groceries_yearly_estimate,
+                                       yearly_estimated_total=yearly_estimated_total)
+    calculated_data =CalculatedYearlyData(
+        calculated_data=yearly_calculated_data,
+        calculated_estimation=yearly_calculated_estimation,
+    )
+                                           
         # Return yearly things and toral_transcations
-    return yearly_calculated_data, actual_groceries
+    return calculated_data, actual_data

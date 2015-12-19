@@ -1,6 +1,21 @@
 Changelog
 =========
 
+v2.2.1 (2015-12-19)
+-------------------
+
+Fix
+~~~
+
+- *dashboard*: Estimate has no repeast field. [Petri Jokimies]
+
+
+
+
+
+
+
+
 v2.2.0 (2015-12-19)
 -------------------
 

@@ -40,7 +40,9 @@
 			    {{ estimated_yearly_total_cat|stringformat:".02f" }}
 			</td>
 			<td class="numeric">
-			    {{ yearly_actual_total_cat }}
+			    <span class="{% colorize_amount estimated_yearly_total_cat yearly_actual_total_cat %}">
+				  {{ yearly_actual_total_cat|stringformat:".02f" }}
+			    </span>
 			</td>
 		    </tr>
 		{% endfor %}

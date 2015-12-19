@@ -10,7 +10,7 @@ class BaseTest(object):
         """
 
         # In case of redirect, follow to the redirected page
-        response = self.c.get(self.url, follow=True)
+        response = self.client.get(self.url, follow=True)
         #print self.url
 
         # In python3 response.content is 'bytes'

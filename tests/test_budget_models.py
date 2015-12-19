@@ -20,6 +20,41 @@ class BudgetModelTest(TestCase):
     def create_budgets(self):
         BudgetFactory()
 
+    def create_transactions(self):
+
+        amount_groceries1 = Decimal('68.30')
+        amount_groceries2 = Decimal('34.39')
+
+        # Setup and crate needed budgets, estimates, etc.
+        self.budget = BudgetFactory(start_date=datetime.datetime(2008, 1, 1))
+        start_date, end_date = calculate_start_end_date(2008, 2)
+        cat_food = CategoryFactory(name='Food')
+        cat_groceries = CategoryFactory(name='Groceries',
+                                        parent=cat_food,)
+        cat_loan = CategoryFactory(name='Loan')
+        entire_year = ",".join([str(x) for x in range(1,13)])
+        loan_estimate = Decimal('1000.0')
+        groceries_estimate = Decimal('800.0')
+        self.total_estimate = 2 * loan_estimate + 12 * groceries_estimate
+        self.estimate_march = loan_estimate + groceries_estimate
+        BudgetEstimateFactory(amount=loan_estimate,
+                              budget=self.budget,
+                              category=cat_loan,
+                              occurring_month='1,3')
+
+        BudgetEstimateFactory(amount=groceries_estimate,
+                              budget=self.budget,
+                              category=cat_groceries,
+                              occurring_month=entire_year)
+
+        TransactionFactory(amount=amount_groceries1,
+                           category=cat_groceries,
+                           date=datetime.datetime(2008, 2, 1))
+
+        TransactionFactory(amount=amount_groceries2,
+                           category=cat_groceries,
+                           date=datetime.datetime(2008, 2, 12))
+
     def test_saving_retrieving_budgets(self):
 
         self.create_budgets()
@@ -112,6 +147,14 @@ class BudgetModelTest(TestCase):
         self.assertAlmostEqual(calculated_data.calculated_estimation,
                                real_data.yearly_estimated_total,
                                msg='Estimation does not match')
+
+    def test_current_month_estimate_is_calulated_correcly(self):
+
+        self.create_transactions()
+        # Situation in March
+        estimated_amount = self.budget.monthly_estimated_total_current_month(3)
+        self.assertAlmostEqual(self.estimate_march, estimated_amount,
+                               msg='Calculated estimation does not match')
 
 
 class BudgetEstimateModelTest(TestCase):

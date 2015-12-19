@@ -52,11 +52,7 @@ class Budget(StandardMetadata):
     def monthly_estimated_total_current_month(self, month):
         total = Decimal('0.0')
         for estimate in self.estimates.exclude(is_deleted=True):
-            if estimate.repeat == 'MONTHLY':
-                total += estimate.amount
-            # If estimate is not monthly, it happens in certain month. Use
-            # average for that estimate
-            elif estimate.occurring_month == month:
+            if str(month) in estimate.occurring_month:
                 total += estimate.amount
         return total
 

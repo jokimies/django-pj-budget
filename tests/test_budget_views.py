@@ -25,7 +25,7 @@ from budget.categories.models import Category, get_queryset_descendants
 class BudgetDasboardTest(TestCase, BaseTest):
 
     def setUp(self):
-        self.c = Client()
+        self.client = Client()
         self.url = reverse('budget_dashboard')
 
     def test_dasboard_empty(self):
@@ -33,8 +33,17 @@ class BudgetDasboardTest(TestCase, BaseTest):
         If there's no budget, it should redirect to setup page
         """
 
-        response = self.c.get(self.url, follow=True)
+        response = self.client.get(self.url, follow=True)
         self.assertRedirects(response, reverse('budget_setup'))
+
+    def test_dasboard_renders(self):
+        """
+        Test that the entry point renders OK, if there's bugdet added
+        """
+
+        self.budget = BudgetFactory(start_date=datetime.datetime(2008, 1, 1))
+        response = self.client.get(self.url, follow=True)
+        self.assertEqual(response.status_code, 200)
 
 
 class BudgetYearlySummaryTest(TestCase):

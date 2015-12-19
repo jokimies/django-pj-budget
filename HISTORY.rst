@@ -1,6 +1,29 @@
 Changelog
 =========
 
+v2.2.0 (2015-12-19)
+-------------------
+
+New features
+~~~~~~~~~~~~
+
+- *estimate setup*: Months used in estimate. [Petri Jokimies]
+
+
+
+
+
+
+
+Other
+~~~~~
+
+- Version increase. [Petri Jokimies]
+
+- *yearly summary*: Colorize Actual column. [Petri Jokimies]
+
+- *yearly summary*: Limit number of decimals to two. [Petri Jokimies]
+
 v2.1.2 (2015-12-14)
 -------------------
 

@@ -1,6 +1,17 @@
 Changelog
 =========
 
+v2.2.2 (2015-12-20)
+-------------------
+
+- *montly summary*: Broken monthly summary fixed. [Petri Jokimies]
+
+
+
+
+
+
+
 v2.2.1 (2015-12-19)
 -------------------
 

@@ -100,7 +100,7 @@ class BudgetModelTest(TestCase):
 
         cat_est_trans, actual_total = (
             budget.categories_estimates_and_transactions(
-                start_date, end_date, categories)
+                start_date, end_date, categories, 'all')
         )
         self.assertEqual(total_transactions, actual_total,
                          'Total amount does not match')

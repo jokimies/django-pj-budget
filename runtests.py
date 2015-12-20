@@ -18,6 +18,7 @@ try:
             "django.contrib.auth",
             "django.contrib.contenttypes",
             "django.contrib.sites",
+            "mptt",
             "budget",
             "budget.categories",
             "budget.transactions",

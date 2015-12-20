@@ -10,11 +10,11 @@ from django.core.urlresolvers import reverse
 from django.http import HttpRequest
 from django.template.loader import render_to_string
 from django.template import RequestContext
-from django.db.models import Q
 
 # Own
 from .basetest import BaseTest
-from .factories import *
+from .factories import (CategoryFactory, BudgetFactory,
+                        BudgetEstimateFactory, TransactionFactory)
 
 from budget.views import summary_year_no_months
 from budget.categories.models import Category, get_queryset_descendants
@@ -110,7 +110,7 @@ class BudgetYearlySummaryTest(TestCase):
         response = summary_year_no_months(request,
                                           self.year,
                                           template_name=template)
-        categories_estimates_and_transactions, actual_total = self.budget.categories_estimates_and_transactions(self.start_date, self.end_date, self.categories, Q())
+        categories_estimates_and_transactions, actual_total = self.budget.categories_estimates_and_transactions(self.start_date, self.end_date, self.categories, 'all')
 
         expected_html = render_to_string(template, {
             'months': calendar.month_abbr[1:],
@@ -149,3 +149,22 @@ class BudgetYearlySummaryTest(TestCase):
             )
         )
         self.assertTemplateUsed(response, template)
+
+
+class BudgetMonthlySummaryTest(TestCase):
+
+    def setUp(self):
+
+        self.year = '2015'
+        self.month = '8'
+
+        self.client = Client()
+        self.url = reverse('budget_summary_month', args=(self.year,
+                                                         self.month,))
+
+    def test_monthly_summary_renders(self):
+
+        BudgetFactory(start_date=datetime.datetime(2008, 1, 1))
+        CategoryFactory(name='Loan')
+        response = self.client.get(self.url, follow=True)
+        self.assertEqual(response.status_code, 200)

@@ -8,7 +8,6 @@ from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
-from django.db.models import Q
 
 from budget.models import Budget, BudgetEstimate
 from budget.categories.models import Category, get_queryset_descendants
@@ -134,7 +133,7 @@ def summary_year_no_months(request, year, budget_model_class=Budget,
     root_nodes = Category.root_nodes.all()
     categories = get_queryset_descendants(root_nodes, include_self=True)
 
-    categories_estimates_and_transactions, actual_total = budget.categories_estimates_and_transactions(start_date, end_date, categories, Q())
+    categories_estimates_and_transactions, actual_total = budget.categories_estimates_and_transactions(start_date, end_date, categories, 'all')
     return render_to_response(template_name, {
         'budget': budget,
         'categories_estimates_and_transactions': categories_estimates_and_transactions,
@@ -209,7 +208,6 @@ def summary_month(request, year, month, budget_model_class=Budget,
 
     end_date = datetime.date(end_year, end_month, 1) - datetime.timedelta(days=1)
     # Search for monthly expenses and those estimated to happen in this month
-    query_list = (Q(repeat='MONTHLY') | Q(occurring_month=int(month)))
 
     budget = budget_model_class.active.most_current_for_date(end_date)
     estimated_total = budget.monthly_estimated_total_current_month(int(month))
@@ -217,7 +215,7 @@ def summary_month(request, year, month, budget_model_class=Budget,
     root_nodes = Category.root_nodes.all()
     categories = get_queryset_descendants(root_nodes, include_self=True)
 
-    categories_estimates_and_transactions, actual_total = budget.categories_estimates_and_transactions(start_date, end_date, categories, query_list)
+    categories_estimates_and_transactions, actual_total = budget.categories_estimates_and_transactions(start_date, end_date, categories, month)
 
     return render_to_response(template_name, {
         'budget': budget,

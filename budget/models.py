@@ -58,7 +58,27 @@ class Budget(StandardMetadata):
 
     def categories_estimates_and_transactions(self, start_date, end_date,
                                               categories,
-                                              occurrence_query_list=Q()):
+                                              month):
+
+        """Return data for all the categories in given month, or entire
+        year
+
+        Args:
+           start_date (datetime.datetime): Start of the date range
+           end_date (datetime.datetime): End of the date range
+           categories (mptt.TreeQuerySet): List of categories
+           month (str): number of month as string, or 'all' for entire year
+
+        Returns:
+           A list. First item is list of dictionaries, each dictiory contains
+                   - category (Category)
+                   - estimate (BudgetEstimate)
+                   - transactions (Queryset): Transactions for given period
+                   - actual_amount (Decimal): Actual spent amount for the
+                     estimate
+                   The second item is total sum spent for the category in
+                   the given time range
+        """
 
         categories_estimates_and_transactions = []
 
@@ -68,28 +88,34 @@ class Budget(StandardMetadata):
             estimate_found = False
 
             # Search for each category, and where occurence match
-            query_list = (Q(category=category) & occurrence_query_list)
+            query_list = Q(category=category)
 
             for estimate in self.category_estimates(query_list):
-                estimate_found = True
-                actual_amount = estimate.actual_amount(start_date, end_date)
-                actual_total += actual_amount
-                categories_estimates_and_transactions.append({
-                    'category': category,
-                    'estimate': estimate,
-                    'transactions': estimate.actual_transactions(start_date,
-                                                                 end_date),
-                    'actual_amount': actual_amount,
-                })
-            if not estimate_found:
-                # Set estiamte and transactions to empty query set if no
-                # estimate found
-                categories_estimates_and_transactions.append({
-                    'category': category,
-                    'estimate': self.estimates.none(),
-                    'transactions': Transaction.objects.none(),
-                    'actual_amount': actual_amount,
-                })
+                # As occurring_month is a string of comma separated list of
+                # (month) number, there doesn't seem to be a way to make a
+                # query that would return estimates having e.g '2' in
+                # occurring_month. Hence doing that in Python
+                # If month equals 'all',  accept all estimates for the category
+                if month == 'all' or month in estimate.occurring_month:
+                    estimate_found = True
+                    actual_amount = estimate.actual_amount(start_date, end_date)
+                    actual_total += actual_amount
+                    categories_estimates_and_transactions.append({
+                        'category': category,
+                        'estimate': estimate,
+                        'transactions': estimate.actual_transactions(start_date,
+                                                                     end_date),
+                        'actual_amount': actual_amount,
+                    })
+                if not estimate_found:
+                    # Set estimate and transactions to empty query set if no
+                    # estimate found
+                    categories_estimates_and_transactions.append({
+                        'category': category,
+                        'estimate': self.estimates.none(),
+                        'transactions': Transaction.objects.none(),
+                        'actual_amount': actual_amount,
+                    })
 
         return (categories_estimates_and_transactions, actual_total)
 

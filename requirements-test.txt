@@ -2,7 +2,8 @@ coverage
 mock>=1.0.1
 flake8>=2.1.0
 tox>=1.7.0
-pytest-django
+pytest==3.0.4
+pytest-django==3.0.0
 factory-boy==2.5.2
 
 # Additional test requirements go here

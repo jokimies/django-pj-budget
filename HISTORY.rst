@@ -1,6 +1,31 @@
 Changelog
 =========
 
+v2.3.1 (2016-12-11)
+-------------------
+
+- Bump version to 2.3.1. [Petri Jokimies]
+
+- Execute date range filtering in Python. [Petri Jokimies]
+
+
+
+
+
+
+
+v2.3.0 (2016-11-15)
+-------------------
+
+- Bump version to 2.3.0. [Petri Jokimies]
+
+- Update for Django 1.9. [Petri Jokimies]
+
+- Use local settings-test with py.test. [Petri Jokimies]
+
+
+
+
 v2.2.2 (2015-12-20)
 -------------------
 

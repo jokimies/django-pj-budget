@@ -25,12 +25,12 @@ class TransactionManager(ActiveManager):
 
         # Estimates should only report on expenses to prevent incomes from
         # (incorrectly) artificially inflating totals.
-        return self.get_queryset().filter(date__range=(start_date, end_date)).order_by('date')
+        return self.get_queryset().filter(date__range=(start_date, end_date)).order_by('date').select_related('budget')
 
 
 class TransactionExpenseManager(TransactionManager):
     def get_queryset(self):
-        return super(TransactionExpenseManager, self).get_queryset().filter(transaction_type='expense')
+        return super(TransactionExpenseManager, self).get_queryset().filter(transaction_type='expense').select_related('category')
 
     def actual_transactions(self, start_date, end_date):
         """

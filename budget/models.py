@@ -89,7 +89,7 @@ class Budget(StandardMetadata):
 
             # Search for each category, and where occurence match
             query_list = Q(category=category)
-
+            transactions =  Transaction.expenses.filter(query_list).order_by('date')
             for estimate in self.category_estimates(query_list):
                 # As occurring_month is a string of comma separated list of
                 # (month) number, there doesn't seem to be a way to make a
@@ -98,7 +98,9 @@ class Budget(StandardMetadata):
                 # If month equals 'all',  accept all estimates for the category
                 if month == 'all' or month in estimate.occurring_month:
                     estimate_found = True
-                    actual_amount = estimate.actual_amount(start_date, end_date)
+                    actual_amount = estimate.actual_amount(start_date,
+                                                           end_date,
+                                                           transactions)
                     actual_total += actual_amount
                     categories_estimates_and_transactions.append({
                         'category': category,
@@ -209,9 +211,10 @@ class Budget(StandardMetadata):
 
             category_query = Q(category=category)
             estimates = budget.category_estimates(category_query)
+            transactions =  Transaction.expenses.filter(category=category).order_by('date')
+
             for month_number, month_name in enumerate(calendar.month_name):
                 #
-
                 actual_monthly_total[category] = Decimal(0.0)
 
                 # month number 0 is empty string
@@ -236,7 +239,10 @@ class Budget(StandardMetadata):
                     # Even if there's multiple estimates for the same
                     # category, actual_amount needs to be calculated only once
                     if actual_monthly_total[category] == Decimal(0.0):
-                        actual_monthly_total[category] = estimate.actual_amount(start_date, end_date)
+                        actual_monthly_total[category] = estimate.actual_amount(
+                            start_date,
+                            end_date,
+                            transactions)
 
                     # Get estimates and actuals for the date range
                     # eaa, actual_monthly_total_cat =
@@ -330,16 +336,32 @@ class BudgetEstimate(StandardMetadata):
 
         return yearly_estimate
 
-    def actual_transactions(self, start_date, end_date):
+    def actual_transactions(self, start_date=None, end_date=None):
         # Estimates should only report on expenses to prevent incomes from
         # (incorrectly) artificially inflating totals.
-        return Transaction.expenses.filter(category=self.category, date__range=(start_date, end_date)).order_by('date')
+        if (start_date and end_date):
+            return Transaction.expenses.filter(category=self.category, date__range=(start_date, end_date)).order_by('date').select_related('category')
+        return Transaction.expenses.filter(category=self.category).order_by('date').select_related('category')
 
-    def actual_amount(self, start_date, end_date):
+    def actual_amount(self, start_date, end_date, transactions=None):
+        """Return actual spendings during the period
+
+        :param start_date: start of range
+        :param end_date: end of range
+        :param transaction: queryset of all expenses in certain category
+
+        Doing the date filtering in Python to avoid hitting database
+        hundreds of times (this function is 12 (number of months in year) *
+        number of categories).
+        """
+
         total = Decimal('0.0')
-        for transaction in self.actual_transactions(start_date, end_date):
-            total += transaction.amount
+        if transactions:
+            for transaction in transactions:
+                if start_date <= transaction.date <= end_date:
+                    total += transaction.amount
         return total
+
 
     class Meta:
         verbose_name = _('Budget estimate')

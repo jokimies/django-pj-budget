@@ -1,6 +1,5 @@
 {% extends 'budget/base.html' %}
 {% load budget %}
-{% load cycle from future %} 
 
 {% block title %}Year Summary For {{ year }}{% endblock %}
 
@@ -20,7 +19,7 @@
         <tbody>
             {% if categories_estimates_and_transactions %}
                 {% for cet_group in categories_estimates_and_transactions %}
-                    <tr class="{% cycle odd,even %}">
+                    <tr class="{% cycle 'odd' 'even' %}">
                         <td style="padding-left: {{ cet_group.category.level }}0px">
                             {{ cet_group.category.name }}
                             

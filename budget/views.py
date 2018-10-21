@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, InvalidPage
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.template import RequestContext
 
 from budget.models import Budget, BudgetEstimate
@@ -67,14 +67,14 @@ def dashboard(request, budget_model_class=Budget,
     if progress_bar_percent >= 100:
         progress_bar_percent = 100
 
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'budget': budget,
         'latest_expenses': latest_expenses,
         'latest_incomes': latest_incomes,
         'estimated_amount': estimated_amount,
         'amount_used': amount_used,
         'progress_bar_percent': progress_bar_percent,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def setup(request, template_name='budget/setup.html'):
@@ -85,8 +85,7 @@ def setup(request, template_name='budget/setup.html'):
 
     Templates: ``budget/setup.html``
     """
-    return render_to_response(template_name, {},
-                              context_instance=RequestContext(request))
+    return render(request, template_name, {})
 
 
 def summary_list(request, transaction_model_class=Transaction,
@@ -101,9 +100,9 @@ def summary_list(request, transaction_model_class=Transaction,
             have transactions
     """
     dates = transaction_model_class.active.all().dates('date', 'month')
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'dates': dates,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def summary_year_no_months(request, year, budget_model_class=Budget,
@@ -134,12 +133,12 @@ def summary_year_no_months(request, year, budget_model_class=Budget,
     categories = get_queryset_descendants(root_nodes, include_self=True)
 
     categories_estimates_and_transactions, actual_total = budget.categories_estimates_and_transactions(start_date, end_date, categories, 'all')
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'budget': budget,
         'categories_estimates_and_transactions': categories_estimates_and_transactions,
         'actual_total': actual_total,
         'year': year,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def summary_year_detail(request, year, budget_model_class=Budget,
@@ -169,14 +168,14 @@ def summary_year_detail(request, year, budget_model_class=Budget,
     budget = budget_model_class.active.most_current_for_date(year_end_date)
     yearly_data = budget.yearly_data_per_category(categories, budget,
                                                   year)
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'months': calendar.month_abbr[1:],
         'categories': categories,
         'budget': budget,
         'estimates_and_actuals': yearly_data.estimates_and_actuals,
         'actual_yearly_total': yearly_data.actual_yearly_total,
         'year': year,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def summary_month(request, year, month, budget_model_class=Budget,
@@ -217,7 +216,7 @@ def summary_month(request, year, month, budget_model_class=Budget,
 
     categories_estimates_and_transactions, actual_total = budget.categories_estimates_and_transactions(start_date, end_date, categories, month)
 
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'budget': budget,
         'categories_estimates_and_transactions': categories_estimates_and_transactions,
         'actual_total': actual_total,
@@ -225,7 +224,7 @@ def summary_month(request, year, month, budget_model_class=Budget,
         'end_date': end_date,
         'estimated_total': estimated_total,
         'categories': categories,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def budget_list(request, model_class=Budget,
@@ -250,11 +249,11 @@ def budget_list(request, model_class=Budget,
         budgets = page.object_list
     except InvalidPage:
         raise Http404('Invalid page requested.')
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'budgets': budgets,
         'paginator': paginator,
         'page': page,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def budget_add(request, form_class=BudgetForm,
@@ -275,9 +274,9 @@ def budget_add(request, form_class=BudgetForm,
             return HttpResponseRedirect(reverse('budget_budget_list'))
     else:
         form = form_class()
-    return render_to_response(template_name, {
+    return render_to_response(request, template_name, {
         'form': form,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def budget_edit(request, slug, model_class=Budget, form_class=BudgetForm,
@@ -301,10 +300,10 @@ def budget_edit(request, slug, model_class=Budget, form_class=BudgetForm,
             return HttpResponseRedirect(reverse('budget_budget_list'))
     else:
         form = form_class(instance=budget)
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'budget': budget,
         'form': form,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def budget_delete(request, slug, model_class=Budget,
@@ -322,9 +321,9 @@ def budget_delete(request, slug, model_class=Budget,
         if request.POST.get('confirmed'):
             budget.delete()
         return HttpResponseRedirect(reverse('budget_budget_list'))
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'budget': budget,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def estimate_list(request, budget_slug, budget_model_class=Budget,
@@ -354,12 +353,12 @@ def estimate_list(request, budget_slug, budget_model_class=Budget,
         estimates = page.object_list
     except InvalidPage:
         raise Http404('Invalid page requested.')
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'budget': budget,
         'estimates': estimates,
         'paginator': paginator,
         'page': page,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def estimate_add(request, budget_slug, budget_model_class=Budget,
@@ -388,10 +387,10 @@ def estimate_add(request, budget_slug, budget_model_class=Budget,
             )
     else:
         form = form_class()
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'budget': budget,
         'form': form,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def estimate_edit(request, budget_slug, estimate_id,
@@ -427,11 +426,11 @@ def estimate_edit(request, budget_slug, estimate_id,
             )
     else:
         form = form_class(instance=estimate)
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'budget': budget,
         'estimate': estimate,
         'form': form,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def estimate_delete(request, budget_slug, estimate_id,
@@ -460,7 +459,7 @@ def estimate_delete(request, budget_slug, estimate_id,
             reverse('budget_estimate_list',
                     kwargs={'budget_slug': budget.slug})
         )
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'budget': budget,
         'estimate': estimate,
-    }, context_instance=RequestContext(request))
+    })

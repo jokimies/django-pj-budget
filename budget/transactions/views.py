@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404, HttpResponseRedirect
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.template import RequestContext
 from budget.transactions.models import Transaction
 from budget.transactions.forms import TransactionForm
@@ -30,11 +30,11 @@ def transaction_list(request, model_class=Transaction,
         transactions = page.object_list
     except InvalidPage:
         raise Http404('Invalid page requested.')
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'transactions': transactions,
         'paginator': paginator,
         'page': page,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def transaction_add(request, form_class=TransactionForm,
@@ -55,9 +55,9 @@ def transaction_add(request, form_class=TransactionForm,
             return HttpResponseRedirect(reverse('budget_transaction_list'))
     else:
         form = form_class()
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'form': form,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def transaction_edit(request, transaction_id, model_class=Transaction,
@@ -83,10 +83,10 @@ def transaction_edit(request, transaction_id, model_class=Transaction,
             return HttpResponseRedirect(reverse('budget_transaction_list'))
     else:
         form = form_class(instance=transaction)
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'transaction': transaction,
         'form': form,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def transaction_delete(request, transaction_id, model_class=Transaction,
@@ -105,6 +105,6 @@ def transaction_delete(request, transaction_id, model_class=Transaction,
         if request.POST.get('confirmed'):
             transaction.delete()
         return HttpResponseRedirect(reverse('budget_transaction_list'))
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'transaction': transaction,
-    }, context_instance=RequestContext(request))
+    })

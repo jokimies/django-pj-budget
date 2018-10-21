@@ -1,6 +1,5 @@
 {% extends 'budget/base.html' %}
 {% load budget %}
-{% load cycle from future %} 
 
 {% block title %}Dashboard{% endblock title %}
 
@@ -21,7 +20,7 @@
             <tbody>
                 {% if latest_expenses %}
                     {% for expense in latest_expenses %}
-                        <tr class="{% cycle odd,even %}">
+                        <tr class="{% cycle 'odd' 'even' %}">
                             <td>
                                 <a href="{% url 'budget_transaction_edit' expense.id %}">{{ expense.notes }}</a>
                             </td>
@@ -57,7 +56,7 @@
             <tbody>
                 {% if latest_incomes %}
                     {% for income in latest_incomes %}
-                        <tr class="{% cycle odd,even %}">
+                        <tr class="{% cycle 'odd' 'even' %}">
                             <td>
                                 <a href="{% url 'budget_transaction_edit' income.id %}">{{ income.notes }}</a>
                             </td>

@@ -1,6 +1,5 @@
 {% extends 'budget/base.html' %}
 {% load budget %}
-{% load cycle from future %} 
 
 {% block title %}Year Summary For {{ year }}{% endblock %}
 
@@ -23,7 +22,7 @@
         <tbody>
 	    {% if estimates_and_actuals %}
 		{% for category, monthly_data, yearly_actual_total_cat, estimated_yearly_total_cat in estimates_and_actuals %}
-		    <tr class="{% cycle odd,even %}">
+		    <tr class="{% cycle 'odd' 'even' %}">
 			{% if not category.level %}
 			    <td style="padding-left: 0px; font-weight: bold">
 			{% else %} 

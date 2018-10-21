@@ -1,5 +1,4 @@
 {% extends 'budget/base.html' %}
-{% load cycle from future %} 
 
 {% block title %}Transaction List{% endblock %}
 
@@ -23,7 +22,7 @@
         <tbody>
             {% if transactions %}
                 {% for transaction in transactions %}
-                    <tr class="{% cycle odd,even %}">
+                    <tr class="{% cycle 'odd' 'even' %}">
                         <td><a href="{% url 'budget_transaction_edit' transaction.id %}">{{ transaction.notes }}</a></td>
                         <td>{{ transaction.get_transaction_type_display }}</td>
                         <td class="numeric">{{ transaction.date|date:"m/d/Y" }}</td>

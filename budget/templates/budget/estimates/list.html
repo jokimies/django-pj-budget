@@ -1,5 +1,4 @@
 {% extends 'budget/base.html' %}
-{% load cycle from future %} 
 
 {% block title %}Estimate List For {{ budget.name }}{% endblock title %}
 
@@ -22,7 +21,7 @@
         <tbody>
             {% if estimates %}
                 {% for estimate in estimates %}
-                    <tr class="{% cycle odd,even %}">
+                    <tr class="{% cycle 'odd' 'even' %}">
                         <td>
                             <a href="{% url 'budget_estimate_edit' budget.slug estimate.id %}">{{ estimate.category.name }}</a>
                         </td>

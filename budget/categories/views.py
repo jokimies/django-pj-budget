@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.core.paginator import Paginator, InvalidPage
 from django.http import HttpResponseRedirect, Http404
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.template import RequestContext
 from budget.categories.models import Category
 from budget.categories.forms import CategoryForm
@@ -28,11 +28,11 @@ def category_list(request, model_class=Category, template_name='budget/categorie
         categories = page.object_list
     except InvalidPage:
         raise Http404('Invalid page requested.')
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'categories': categories,
         'paginator': paginator,
         'page': page,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def category_add(request, form_class=CategoryForm, template_name='budget/categories/add.html'):
@@ -52,9 +52,9 @@ def category_add(request, form_class=CategoryForm, template_name='budget/categor
             return HttpResponseRedirect(reverse('budget_category_list'))
     else:
         form = form_class()
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'form': form,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def category_edit(request, slug, model_class=Category, form_class=CategoryForm, template_name='budget/categories/edit.html'):
@@ -77,10 +77,10 @@ def category_edit(request, slug, model_class=Category, form_class=CategoryForm, 
             return HttpResponseRedirect(reverse('budget_category_list'))
     else:
         form = form_class(instance=category)
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'category': category,
         'form': form,
-    }, context_instance=RequestContext(request))
+    })
 
 
 def category_delete(request, slug, model_class=Category, template_name='budget/categories/delete.html'):
@@ -97,6 +97,6 @@ def category_delete(request, slug, model_class=Category, template_name='budget/c
         if request.POST.get('confirmed') and request.POST['confirmed'] == 'Yes':
             category.delete()
         return HttpResponseRedirect(reverse('budget_category_list'))
-    return render_to_response(template_name, {
+    return render(request, template_name, {
         'category': category,
-    }, context_instance=RequestContext(request))
+    })
